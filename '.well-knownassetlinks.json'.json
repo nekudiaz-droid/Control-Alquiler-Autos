@@ -1,8 +1,0 @@
-[{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "io.github.nekudiaz_droid.twa",
-        "sha256_cert_fingerprints": ["6E:91:CF:A8:39:1F:9A:7A:29:A6:E4:5E:0E:F6:75:E3:EC:5B:74:3B:4B:06:98:2C:15:09:FF:F4:FC:B3:09:C1"]
-      }
-    }]
