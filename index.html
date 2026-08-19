@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Control de Alquileres</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5B3DF5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Alquileres">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   VARIABLES DE DISEÑO — Paleta vibrante violeta/azul
+   ============================================================ */
+:root{
+  --navy-900:#181530;
+  --navy-800:#211d43;
+  --navy-700:#2b2657;
+  --violet-700:#5B3DF5;
+  --violet-600:#7C5CFC;
+  --violet-500:#9C82FF;
+  --blue-600:#3E8BFF;
+  --blue-500:#5B9DFF;
+  --blue-100:#E9F0FF;
+  --green-600:#12B76A;
+  --green-100:#DFFBEA;
+  --yellow-600:#E08A00;
+  --yellow-500:#F79009;
+  --yellow-100:#FFF3D9;
+  --red-600:#F0453D;
+  --red-100:#FFE4E1;
+  --gray-50:#F7F7FC;
+  --gray-100:#F0F1F9;
+  --gray-200:#E5E6F3;
+  --gray-300:#CDD0E7;
+  --gray-400:#9A9DC0;
+  --gray-600:#605F87;
+  --gray-900:#201D3D;
+  --card-bg:#ffffff;
+  --radius:18px;
+  --radius-sm:12px;
+  --shadow:0 2px 10px rgba(91,61,245,.07),0 1px 2px rgba(32,29,61,.05);
+  --shadow-lg:0 20px 48px rgba(91,61,245,.22);
+  --sidebar-w:236px;
+  --grad-primary:linear-gradient(135deg,#7C5CFC 0%,#5B7BFC 55%,#3E8BFF 100%);
+  --grad-soft:linear-gradient(135deg,#EFEBFF 0%,#E9F0FF 100%);
+  --font-ui:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+[data-theme="dark"]{
+  --gray-50:#100e21;
+  --gray-100:#18152e;
+  --gray-200:#241f47;
+  --gray-300:#332c5e;
+  --gray-400:#6c69a0;
+  --gray-600:#a6a3d6;
+  --gray-900:#f2f1fb;
+  --card-bg:#1a1734;
+  --blue-100:#1c2a52;
+  --green-100:#0e3327;
+  --yellow-100:#3a2a08;
+  --red-100:#3d1b22;
+  --grad-soft:linear-gradient(135deg,#241f47 0%,#1c2a52 100%);
+  --shadow:0 2px 10px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:var(--font-ui);
+  background:var(--gray-50);
+  color:var(--gray-900);
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  letter-spacing:-.01em;
+}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;}
+a{color:inherit;}
+::-webkit-scrollbar{width:9px;height:9px;}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:10px;}
+
+/* ============================================================
+   LAYOUT GENERAL
+   ============================================================ */
+#appShell{display:flex;min-height:100vh;}
+
+#sidebar{
+  width:var(--sidebar-w);
+  background:linear-gradient(190deg,var(--navy-800) 0%,var(--navy-900) 65%);
+  color:#c9c8e8;
+  position:fixed;top:0;left:0;bottom:0;
+  display:flex;flex-direction:column;
+  z-index:60;
+  transition:transform .25s ease;
+}
+#sidebar .brand{
+  padding:22px 20px 18px;
+  display:flex;align-items:center;gap:11px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+#sidebar .brand .logo{
+  font-size:19px;width:38px;height:38px;flex-shrink:0;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--grad-primary);
+  box-shadow:0 6px 16px rgba(124,92,252,.45);
+}
+#sidebar .brand .name{
+  font-weight:800;font-size:15px;color:#fff;line-height:1.25;letter-spacing:-.01em;
+}
+#sidebar .brand .sub{font-size:10.5px;color:#8482b8;font-weight:600;margin-top:1px;}
+#sidebar nav{flex:1;padding:16px 10px;overflow-y:auto;}
+.navitem{
+  width:100%;display:flex;align-items:center;gap:12px;
+  background:transparent;border:none;color:#b5b3dc;
+  padding:11px 14px;border-radius:12px;font-size:13.5px;font-weight:600;
+  margin-bottom:3px;text-align:left;transition:background .15s,color .15s,transform .1s;
+}
+.navitem .ic{font-size:16px;width:20px;text-align:center;}
+.navitem:hover{background:rgba(255,255,255,.07);color:#fff;}
+.navitem.active{background:var(--grad-primary);color:#fff;box-shadow:0 6px 16px rgba(124,92,252,.4);}
+#sidebar .foot{
+  padding:14px 18px 18px;font-size:10.5px;color:#5f5d8c;border-top:1px solid rgba(255,255,255,.08);
+}
+
+#mainWrap{margin-left:var(--sidebar-w);flex:1;min-width:0;display:flex;flex-direction:column;}
+
+#topbar{
+  position:sticky;top:0;z-index:40;
+  background:var(--card-bg);
+  border-bottom:1px solid var(--gray-200);
+  padding:14px 24px;
+  display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+}
+#topbar .tb-left{display:flex;align-items:center;gap:12px;}
+#hamburger{display:none;background:none;border:none;font-size:22px;color:var(--gray-900);}
+#topbar h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.015em;}
+#topbar .tb-date{font-size:12px;color:var(--gray-600);margin-top:2px;font-weight:500;}
+.btn{
+  border:none;border-radius:12px;padding:10px 16px;font-size:13.5px;font-weight:700;
+  display:inline-flex;align-items:center;gap:7px;transition:filter .15s,transform .1s,box-shadow .15s;white-space:nowrap;
+  letter-spacing:-.005em;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--grad-primary);color:#fff;box-shadow:0 6px 16px rgba(91,123,252,.35);}
+.btn-primary:hover{filter:brightness(1.06);box-shadow:0 8px 20px rgba(91,123,252,.45);}
+.btn-secondary{background:var(--gray-100);color:var(--gray-900);border:1px solid var(--gray-200);}
+.btn-secondary:hover{background:var(--gray-200);}
+.btn-danger{background:var(--red-600);color:#fff;}
+.btn-danger:hover{filter:brightness(1.08);}
+.btn-success{background:var(--green-600);color:#fff;}
+.btn-ghost{background:transparent;color:var(--gray-600);}
+.btn-ghost:hover{background:var(--gray-100);}
+.btn-sm{padding:6px 10px;font-size:12.5px;border-radius:9px;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+#content{padding:22px 24px 60px;max-width:1400px;width:100%;margin:0 auto;}
+
+/* ============================================================
+   COMPONENTES COMUNES
+   ============================================================ */
+.card{background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--gray-200);}
+.section-title{font-size:15px;font-weight:800;margin:0 0 14px;display:flex;align-items:center;gap:8px;letter-spacing:-.01em;}
+.section-sub{font-size:12.5px;color:var(--gray-600);margin:-8px 0 16px;font-weight:500;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px;}
+.stat-card{
+  position:relative;overflow:hidden;
+  background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:16px 18px 18px;border:1px solid var(--gray-200);
+}
+.stat-card::before{content:'';position:absolute;top:-34px;right:-34px;width:96px;height:96px;border-radius:50%;opacity:.65;}
+.stat-card .stat-label{position:relative;font-size:11.5px;color:var(--gray-600);font-weight:700;display:flex;align-items:center;gap:6px;}
+.stat-card .stat-value{position:relative;font-size:22px;font-weight:800;margin-top:8px;letter-spacing:-.02em;}
+.stat-card.blue::before{background:var(--blue-100);}
+.stat-card.green::before{background:var(--green-100);}
+.stat-card.red::before{background:var(--red-100);}
+.stat-card.yellow::before{background:var(--yellow-100);}
+.stat-card.gray::before{background:var(--gray-100);}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:-.005em;}
+.pill-green{background:var(--green-100);color:var(--green-600);}
+.pill-yellow{background:var(--yellow-100);color:var(--yellow-600);}
+.pill-red{background:var(--red-100);color:var(--red-600);}
+.pill-gray{background:var(--gray-100);color:var(--gray-600);}
+.pill-blue{background:var(--blue-100);color:var(--violet-600);}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{
+  text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--gray-600);
+  background:var(--gray-100);padding:10px 12px;font-weight:800;position:sticky;top:0;
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--gray-200);vertical-align:middle;}
+tbody tr:hover{background:var(--gray-50);}
+.table-wrap{overflow-x:auto;border-radius:var(--radius-sm);border:1px solid var(--gray-200);}
+.table-scroll{max-height:420px;overflow-y:auto;}
+.text-right{text-align:right;}
+.text-center{text-align:center;}
+.muted{color:var(--gray-600);}
+.money-red{color:var(--red-600);font-weight:700;}
+.money-green{color:var(--green-600);font-weight:700;}
+.money-neu{font-weight:700;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr;}.grid-3{grid-template-columns:1fr;}}
+
+/* Autos */
+.cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
+.car-card{background:var(--card-bg);border:1px solid var(--gray-200);border-radius:var(--radius);box-shadow:var(--shadow);padding:17px 19px;position:relative;transition:box-shadow .15s,transform .15s;}
+.car-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-2px);}
+.car-card .cc-top{display:flex;justify-content:space-between;align-items:flex-start;}
+.car-card h3{margin:0;font-size:15px;font-weight:800;letter-spacing:-.01em;}
+.car-card .cc-plate{font-size:11px;color:var(--gray-600);font-weight:700;letter-spacing:.03em;margin-top:3px;}
+.car-card .cc-rows{margin-top:12px;font-size:13px;}
+.car-card .cc-rows div{display:flex;justify-content:space-between;padding:4px 0;}
+.car-card .cc-rows div span:last-child{font-weight:700;}
+.car-card .cc-actions{display:flex;gap:6px;margin-top:14px;flex-wrap:wrap;}
+.badge-inactive{position:absolute;top:14px;right:14px;font-size:10px;background:var(--gray-200);color:var(--gray-600);padding:2px 8px;border-radius:999px;font-weight:800;letter-spacing:.03em;}
+
+.filter-bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;}
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:10.5px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.03em;}
+.field input,.field select{
+  padding:8px 10px;border-radius:10px;border:1px solid var(--gray-300);background:var(--card-bg);color:var(--gray-900);font-size:13px;min-width:130px;
+}
+.field input:focus,.field select:focus{outline:2px solid var(--violet-500);outline-offset:1px;}
+.search-box{display:flex;align-items:center;gap:6px;background:var(--card-bg);border:1px solid var(--gray-300);border-radius:10px;padding:7px 10px;min-width:200px;}
+.search-box input{border:none;outline:none;font-size:13px;flex:1;background:transparent;color:var(--gray-900);}
+
+/* Calendario */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
+.cal-dow{font-size:11px;font-weight:700;color:var(--gray-600);text-align:center;padding-bottom:4px;}
+.cal-day{
+  aspect-ratio:1/0.85;border-radius:13px;border:1px solid var(--gray-200);background:var(--card-bg);
+  padding:6px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:box-shadow .15s,transform .1s;
+  min-height:64px;
+}
+.cal-day:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px);}
+.cal-day.empty{visibility:hidden;}
+.cal-day .cd-num{font-size:12.5px;font-weight:700;}
+.cal-day .cd-dot{width:9px;height:9px;border-radius:50%;align-self:flex-end;}
+.cal-day.selected{outline:2px solid var(--violet-600);background:var(--grad-soft);}
+.cal-day .cd-amt{font-size:10px;color:var(--gray-600);}
+.dot-green{background:var(--green-600);}
+.dot-yellow{background:var(--yellow-500);}
+.dot-red{background:var(--red-600);}
+.dot-gray{background:var(--gray-300);}
+.cal-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--gray-600);margin:12px 0 4px;}
+.cal-legend span{display:inline-flex;align-items:center;gap:6px;}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+
+/* Modal */
+#modalRoot{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(24,21,48,.6);backdrop-filter:blur(2px);z-index:100;padding:16px;}
+#modalRoot.open{display:flex;}
+.modal-box{background:var(--card-bg);border-radius:22px;max-width:560px;width:100%;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);}
+.modal-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid var(--gray-200);}
+.modal-head h2{font-size:16px;margin:0;font-weight:800;letter-spacing:-.01em;}
+.modal-close{background:none;border:none;font-size:20px;color:var(--gray-600);}
+.modal-body{padding:22px;}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--gray-200);display:flex;justify-content:flex-end;gap:10px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid .full{grid-column:1/-1;}
+.form-field{display:flex;flex-direction:column;gap:5px;margin-bottom:2px;}
+.form-field label{font-size:11.5px;font-weight:700;color:var(--gray-600);text-transform:uppercase;letter-spacing:.03em;}
+.form-field input,.form-field select,.form-field textarea{
+  padding:10px 12px;border-radius:11px;border:1px solid var(--gray-300);background:var(--gray-50);color:var(--gray-900);font-size:13.5px;width:100%;
+}
+[data-theme="dark"] .form-field input,[data-theme="dark"] .form-field select,[data-theme="dark"] .form-field textarea{background:var(--gray-100);}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{outline:2px solid var(--violet-500);outline-offset:1px;}
+.form-error{background:var(--red-100);color:var(--red-600);padding:10px 12px;border-radius:11px;font-size:12.5px;margin-bottom:14px;font-weight:700;}
+.calc-box{background:var(--grad-soft);border:1px solid var(--gray-200);border-radius:14px;padding:12px 14px;margin-top:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center;}
+.calc-box .cb-item .l{font-size:10.5px;color:var(--gray-600);font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.calc-box .cb-item .v{font-size:15px;font-weight:800;margin-top:4px;}
+
+/* Toast */
+#toastRoot{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--navy-900);color:#fff;padding:12px 18px;border-radius:13px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);min-width:220px;animation:slideIn .2s ease;}
+.toast.success{background:linear-gradient(135deg,#12B76A,#0EA05B);}
+.toast.error{background:linear-gradient(135deg,#F0453D,#D8342C);}
+@keyframes slideIn{from{transform:translateX(30px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+.alert-banner{
+  display:flex;align-items:center;gap:10px;background:var(--red-100);color:var(--red-600);
+  padding:12px 16px;border-radius:14px;font-weight:700;font-size:13.5px;margin-bottom:18px;border:1px solid rgba(240,69,61,.2);
+}
+.empty-state{padding:40px 20px;text-align:center;color:var(--gray-600);}
+.empty-state .es-ic{font-size:34px;margin-bottom:8px;}
+
+.detail-info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.detail-info-grid .dig-item{background:var(--gray-50);border-radius:13px;padding:11px 13px;border:1px solid var(--gray-200);}
+[data-theme="dark"] .detail-info-grid .dig-item{background:var(--gray-100);}
+.detail-info-grid .dig-item .l{font-size:11px;color:var(--gray-600);font-weight:600;}
+.detail-info-grid .dig-item .v{font-size:14px;font-weight:700;margin-top:3px;}
+
+canvas{max-width:100%;}
+.chart-card{padding:18px;}
+.chart-card h3{margin:0 0 12px;font-size:14px;font-weight:800;}
+
+.toggle-switch{position:relative;width:44px;height:24px;background:var(--gray-300);border-radius:999px;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.toggle-switch.on{background:var(--grad-primary);}
+.toggle-switch .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25);}
+.toggle-switch.on .knob{transform:translateX(20px);}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--gray-200);gap:16px;flex-wrap:wrap;}
+.settings-row:last-child{border-bottom:none;}
+.settings-row .sr-label{font-weight:700;font-size:13.5px;}
+.settings-row .sr-sub{font-size:12px;color:var(--gray-600);margin-top:2px;}
+
+#dropOverlay{position:fixed;inset:0;background:rgba(24,21,48,.45);z-index:55;display:none;}
+#dropOverlay.show{display:block;}
+
+@media(max-width:900px){
+  #sidebar{transform:translateX(-100%);}
+  #sidebar.open{transform:translateX(0);}
+  #mainWrap{margin-left:0;}
+  #hamburger{display:block;}
+  .form-grid{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr;}
+  #content{padding:16px;}
+}
+</style>
+</head>
+<body data-theme="light">
+<div id="dropOverlay" onclick="closeSidebar()"></div>
+<div id="appShell">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="brand">
+      <div class="logo">🚗</div>
+      <div>
+        <div class="name" id="brandName">Control de Alquileres</div>
+        <div class="sub">Gestión de vehículos</div>
+      </div>
+    </div>
+    <nav id="navMenu"></nav>
+    <div class="foot">Datos guardados localmente en este navegador.</div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="mainWrap">
+    <div id="topbar">
+      <div class="tb-left">
+        <button id="hamburger" onclick="toggleSidebar()">☰</button>
+        <div>
+          <h1 id="pageTitle">Dashboard</h1>
+          <div class="tb-date" id="pageSub"></div>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="openPaymentModal()">+ Registrar ingreso</button>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<div id="modalRoot"><div class="modal-box" id="modalBox"></div></div>
+<div id="toastRoot"></div>
+
+<script>
+/* ================================================================
+   CONTROL DE ALQUILERES — LÓGICA DE LA APLICACIÓN
+   Todo el estado se guarda en localStorage. Sin backend, sin
+   dependencias externas.
+   ================================================================ */
+
+/* ---------------- ESTADO Y PERSISTENCIA ---------------- */
+const STORAGE_KEY = 'car_rental_control_v1';
+let state = { cars: [], payments: [], config: {} };
+
+function defaultConfig(){
+  return { businessName:'Mi Empresa de Alquileres', currency:'ARS', theme:'light' };
+}
+
+function loadState(){
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw){
+    try{
+      const parsed = JSON.parse(raw);
+      state.cars = Array.isArray(parsed.cars) ? parsed.cars : [];
+      state.payments = Array.isArray(parsed.payments) ? parsed.payments : [];
+      state.config = Object.assign(defaultConfig(), parsed.config || {});
+    }catch(e){
+      console.error('Error leyendo datos guardados', e);
+      state = { cars: [], payments: [], config: defaultConfig() };
+    }
+  } else {
+    state = { cars: [], payments: [], config: defaultConfig() };
+    seedSampleData();
+  }
+}
+
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function seedSampleData(){
+  const today = todayISO();
+  const start = addDaysISO(today, -9);
+  const car1 = {
+    id: uid('c'), nombre:'Etios', marca:'Toyota', patente:'AB123CD', anio:'2019', color:'Blanco',
+    conductor:'Juan Pérez', telefono:'11-5555-1234', alquilerDiario:25000,
+    fechaInicio:start, fechaFin:null, estado:'activo',
+    priceHistory:[{desde:start, precio:25000}]
+  };
+  const car2 = {
+    id: uid('c'), nombre:'Gol', marca:'Volkswagen', patente:'AC456EF', anio:'2018', color:'Gris',
+    conductor:'Marcos Díaz', telefono:'11-5555-5678', alquilerDiario:22000,
+    fechaInicio:start, fechaFin:null, estado:'activo',
+    priceHistory:[{desde:start, precio:22000}]
+  };
+  state.cars.push(car1, car2);
+  // Pagos de ejemplo: variados (completos, parciales, sin pago)
+  const patterns1 = [25000,25000,20000,0,25000,15000,25000,10000,25000];
+  const patterns2 = [22000,0,22000,22000,10000,22000,22000,22000,5000];
+  for(let i=0;i<9;i++){
+    const d = addDaysISO(start, i);
+    if(patterns1[i] > 0) state.payments.push({id:uid('p'), carId:car1.id, fecha:d, monto:patterns1[i], metodo:i%3===0?'Efectivo':(i%3===1?'Transferencia':'Mercado Pago'), observacion:'', createdAt:Date.now()+i});
+    if(patterns2[i] > 0) state.payments.push({id:uid('p'), carId:car2.id, fecha:d, monto:patterns2[i], metodo:i%2===0?'Efectivo':'Transferencia', observacion:'', createdAt:Date.now()+i+100});
+  }
+  saveState();
+}
+
+/* ---------------- UTILIDADES ---------------- */
+function uid(prefix){ return prefix+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function toISO(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function todayISO(){ return toISO(new Date()); }
+function parseISO(s){ const p = s.split('-').map(Number); return new Date(p[0], p[1]-1, p[2]); }
+function addDaysISO(s, n){ const d = parseISO(s); d.setDate(d.getDate()+n); return toISO(d); }
+function formatDateDisplay(iso){ if(!iso) return '-'; const d = parseISO(iso); return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear(); }
+function formatMoney(n){ n = Math.round(n||0); const neg = n<0; n = Math.abs(n); return (neg?'-':'')+'$'+n.toLocaleString('es-AR'); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function daysRangeISO(fromISO_, toISO_){
+  const arr = []; if(fromISO_ > toISO_) return arr;
+  let cur = fromISO_;
+  let guard = 0;
+  while(cur <= toISO_ && guard < 3660){ arr.push(cur); cur = addDaysISO(cur, 1); guard++; }
+  return arr;
+}
+function clamp0(n){ return n < 0 ? 0 : n; }
+
+/* ---------------- LÓGICA CENTRAL DE CÁLCULO ----------------
+   Todas las vistas (dashboard, calendario, detalle de auto,
+   reportes) usan EXCLUSIVAMENTE estas funciones para evitar
+   inconsistencias entre cálculos.
+------------------------------------------------------------- */
+
+// Precio vigente de un auto para una fecha dada, según su historial de precios.
+function getPriceForDate(car, iso){
+  const hist = (car.priceHistory && car.priceHistory.length) ? car.priceHistory : [{desde:car.fechaInicio, precio:car.alquilerDiario}];
+  const sorted = hist.slice().sort((a,b)=> a.desde < b.desde ? -1 : 1);
+  let price = sorted[0].precio;
+  for(const entry of sorted){
+    if(entry.desde <= iso) price = entry.precio; else break;
+  }
+  return price;
+}
+
+// Monto que el auto DEBE generar en una fecha concreta (0 si no corresponde).
+function getExpectedForDate(car, iso){
+  const today = todayISO();
+  if(iso > today) return 0; // no se genera alquiler a futuro
+  if(!car.fechaInicio || iso < car.fechaInicio) return 0;
+  if(car.fechaFin && iso > car.fechaFin) return 0;
+  return getPriceForDate(car, iso);
+}
+
+function getPaymentsForCarDate(carId, iso){
+  return state.payments.filter(p => p.carId === carId && p.fecha === iso);
+}
+function getIngresadoForCarDate(carId, iso){
+  return getPaymentsForCarDate(carId, iso).reduce((s,p)=> s + (Number(p.monto)||0), 0);
+}
+function getIngresadoForCar(carId){
+  return state.payments.filter(p=>p.carId===carId).reduce((s,p)=> s + (Number(p.monto)||0), 0);
+}
+
+// Info completa de un auto en un día puntual.
+function getDayInfoForCar(car, iso){
+  const esperado = getExpectedForDate(car, iso);
+  const ingresado = getIngresadoForCarDate(car.id, iso);
+  const pendiente = clamp0(esperado - ingresado);
+  const favor = clamp0(ingresado - esperado);
+  let estado;
+  if(esperado === 0){
+    estado = ingresado > 0 ? 'FAVOR' : 'SIN_ACTIVIDAD';
+  } else if(ingresado <= 0){
+    estado = 'DEUDA';
+  } else if(ingresado < esperado){
+    estado = 'PARCIAL';
+  } else {
+    estado = 'PAGADO';
+  }
+  return { esperado, ingresado, pendiente, favor, estado };
+}
+
+// Totales acumulados de un auto en un rango de fechas [fromISO, toISO].
+function getCarTotals(car, fromISO_, toISO_){
+  const today = todayISO();
+  const from = fromISO_ || car.fechaInicio;
+  let to = toISO_ || today;
+  if(to > today) to = today;
+  let esperado=0, ingresado=0, pendiente=0, favor=0, diasPagados=0, diasParciales=0, diasDeuda=0, diasAlquilado=0;
+  if(from <= to){
+    for(const iso of daysRangeISO(from, to)){
+      const info = getDayInfoForCar(car, iso);
+      esperado += info.esperado;
+      ingresado += info.ingresado;
+      pendiente += info.pendiente;
+      favor += info.favor;
+      if(info.esperado > 0){
+        diasAlquilado++;
+        if(info.estado === 'PAGADO') diasPagados++;
+        else if(info.estado === 'PARCIAL') diasParciales++;
+        else if(info.estado === 'DEUDA') diasDeuda++;
+      }
+    }
+  }
+  return { esperado, ingresado, pendiente, favor, diasPagados, diasParciales, diasDeuda, diasAlquilado };
+}
+
+function getAllCarsSummary(fromISO_, toISO_){
+  return state.cars.map(car => ({ car, totals: getCarTotals(car, fromISO_, toISO_) }));
+}
+
+function getGlobalTotals(fromISO_, toISO_){
+  const summary = getAllCarsSummary(fromISO_, toISO_);
+  return summary.reduce((acc, s) => {
+    acc.esperado += s.totals.esperado;
+    acc.ingresado += s.totals.ingresado;
+    acc.pendiente += s.totals.pendiente;
+    acc.favor += s.totals.favor;
+    return acc;
+  }, { esperado:0, ingresado:0, pendiente:0, favor:0 });
+}
+
+function getTodayGlobalTotals(){
+  const today = todayISO();
+  return state.cars.reduce((acc, car) => {
+    const info = getDayInfoForCar(car, today);
+    acc.esperado += info.esperado;
+    acc.ingresado += info.ingresado;
+    acc.pendiente += info.pendiente;
+    return acc;
+  }, { esperado:0, ingresado:0, pendiente:0 });
+}
+
+function getDeudasOrdenadas(){
+  return getAllCarsSummary()
+    .filter(s => s.totals.pendiente > 0)
+    .sort((a,b)=> b.totals.pendiente - a.totals.pendiente);
+}
+
+function getCarById(id){ return state.cars.find(c=>c.id===id); }
+
+/* Estado agregado de color para un día del calendario (considerando todos los autos) */
+function getDayAggregate(iso){
+  let esperado=0, ingresado=0, pendiente=0;
+  const rows = [];
+  for(const car of state.cars){
+    const info = getDayInfoForCar(car, iso);
+    if(info.esperado > 0 || info.ingresado > 0){
+      rows.push({ car, info });
+    }
+    esperado += info.esperado;
+    ingresado += info.ingresado;
+    pendiente += info.pendiente;
+  }
+  let color = 'gray';
+  if(esperado === 0){
+    color = 'gray';
+  } else if(pendiente === 0){
+    color = 'green';
+  } else if(ingresado > 0){
+    color = 'yellow';
+  } else {
+    color = 'red';
+  }
+  return { esperado, ingresado, pendiente, rows, color };
+}
+
+/* ---------------- NAVEGACIÓN / VISTAS ---------------- */
+const NAV_ITEMS = [
+  { id:'dashboard', label:'Dashboard', icon:'🏠' },
+  { id:'cars', label:'Mis Autos', icon:'🚗' },
+  { id:'calendar', label:'Calendario', icon:'📅' },
+  { id:'movements', label:'Movimientos', icon:'💳' },
+  { id:'reports', label:'Reportes', icon:'📊' },
+  { id:'settings', label:'Configuración', icon:'⚙️' },
+];
+let currentView = 'dashboard';
+let currentCarDetailId = null;
+let calState = { year:new Date().getFullYear(), month:new Date().getMonth(), selected: todayISO() };
+let movFilters = { desde:'', hasta:'', carId:'', metodo:'', q:'' };
+let repRangePreset = 'thisMonth';
+let repCustomFrom = todayISO();
+let repCustomTo = todayISO();
+let repMonth = new Date().getMonth();
+let repYear = new Date().getFullYear();
+
+function renderNav(){
+  const nav = document.getElementById('navMenu');
+  nav.innerHTML = NAV_ITEMS.map(item => (
+    '<button class="navitem'+(currentView===item.id?' active':'')+'" onclick="goTo(\''+item.id+'\')">'+
+      '<span class="ic">'+item.icon+'</span><span>'+item.label+'</span>'+
+    '</button>'
+  )).join('');
+}
+
+function goTo(view){
+  currentView = view;
+  currentCarDetailId = null;
+  closeSidebar();
+  render();
+}
+
+function goToCarDetail(carId){
+  currentView = 'carDetail';
+  currentCarDetailId = carId;
+  closeSidebar();
+  render();
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('dropOverlay').classList.toggle('show');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('dropOverlay').classList.remove('show');
+}
+
+const TITLES = {
+  dashboard:['Dashboard','Resumen general de tu operación'],
+  cars:['Mis Autos','Administrá tu flota de vehículos'],
+  calendar:['Calendario','Seguimiento diario de ingresos'],
+  movements:['Movimientos','Historial de pagos registrados'],
+  reports:['Reportes','Estadísticas y análisis'],
+  settings:['Configuración','Preferencias y respaldo de datos'],
+  carDetail:['Detalle del auto','']
+};
+
+function render(){
+  renderNav();
+  const [title, sub] = TITLES[currentView] || ['',''];
+  document.getElementById('pageTitle').textContent = currentView==='carDetail' ? 'Detalle del vehículo' : title;
+  document.getElementById('pageSub').textContent = currentView==='carDetail' ? '' : sub;
+  const content = document.getElementById('content');
+  if(currentView === 'dashboard') content.innerHTML = renderDashboard();
+  else if(currentView === 'cars') content.innerHTML = renderCars();
+  else if(currentView === 'calendar') { content.innerHTML = renderCalendar(); }
+  else if(currentView === 'movements') content.innerHTML = renderMovements();
+  else if(currentView === 'reports') { content.innerHTML = renderReports(); drawAllReportCharts(); }
+  else if(currentView === 'settings') content.innerHTML = renderSettings();
+  else if(currentView === 'carDetail') content.innerHTML = renderCarDetail(currentCarDetailId);
+  window.scrollTo(0,0);
+}
+
+/* ================================================================
+   VISTA: DASHBOARD
+   ================================================================ */
+function renderDashboard(){
+  const global = getGlobalTotals();
+  const todayT = getTodayGlobalTotals();
+  const activeCars = state.cars.filter(c=>c.estado==='activo').length;
+  const deudas = getDeudasOrdenadas();
+  const summary = getAllCarsSummary();
+
+  let html = '';
+
+  if(deudas.length){
+    const totalDeuda = deudas.reduce((s,d)=>s+d.totals.pendiente,0);
+    html += '<div class="alert-banner">🔴 <span>'+deudas.length+' auto'+(deudas.length>1?'s tienen':' tiene')+' pagos pendientes por un total de <b>'+formatMoney(totalDeuda)+'</b></span></div>';
+  }
+
+  html += '<div class="stat-grid">'+
+    statCard('blue','🚗','Autos activos', activeCars)+
+    statCard('blue','💰','Total generado', formatMoney(global.esperado))+
+    statCard('green','💵','Total cobrado', formatMoney(global.ingresado))+
+    statCard('red','🔴','Total pendiente', formatMoney(global.pendiente))+
+  '</div>';
+
+  html += '<div class="stat-grid">'+
+    statCard('yellow','📅','Esperado hoy', formatMoney(todayT.esperado))+
+    statCard('green','🟢','Cobrado hoy', formatMoney(todayT.ingresado))+
+    statCard('red','🔴','Pendiente hoy', formatMoney(todayT.pendiente))+
+    statCard('blue','💎','Saldo a favor', formatMoney(global.favor))+
+  '</div>';
+
+  html += '<div class="grid-2">';
+
+  // Resumen por vehículo
+  html += '<div class="card" style="padding:18px;">'+
+    '<div class="section-title">🚙 Resumen por vehículo</div>';
+  if(summary.length === 0){
+    html += emptyState('🚗','Todavía no cargaste autos','Agregá tu primer vehículo desde la sección "Mis Autos".');
+  } else {
+    html += '<div class="table-wrap table-scroll"><table><thead><tr>'+
+      '<th>Auto</th><th>Patente</th><th class="text-right">Diario</th><th class="text-right">Generado</th><th class="text-right">Cobrado</th><th class="text-right">Pendiente</th>'+
+      '</tr></thead><tbody>'+
+      summary.map(s => (
+        '<tr style="cursor:pointer" onclick="goToCarDetail(\''+s.car.id+'\')">'+
+        '<td>'+esc(s.car.marca)+' '+esc(s.car.nombre)+'</td>'+
+        '<td>'+esc(s.car.patente)+'</td>'+
+        '<td class="text-right">'+formatMoney(s.car.alquilerDiario)+'</td>'+
+        '<td class="text-right">'+formatMoney(s.totals.esperado)+'</td>'+
+        '<td class="text-right">'+formatMoney(s.totals.ingresado)+'</td>'+
+        '<td class="text-right '+(s.totals.pendiente>0?'money-red':'muted')+'">'+formatMoney(s.totals.pendiente)+'</td>'+
+        '</tr>'
+      )).join('') +
+      '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  // Deudas pendientes
+  html += '<div class="card" style="padding:18px;">'+
+    '<div class="section-title">🔴 Deudas pendientes</div>';
+  if(deudas.length === 0){
+    html += emptyState('✅','Sin deudas','Todos los autos están al día con sus pagos.');
+  } else {
+    html += '<div style="display:flex;flex-direction:column;gap:8px;">'+
+      deudas.map(d => (
+        '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--red-100);border-radius:9px;cursor:pointer;" onclick="goToCarDetail(\''+d.car.id+'\')">'+
+        '<span>🔴 <b>'+esc(d.car.marca)+' '+esc(d.car.nombre)+'</b> <span class="muted">— '+esc(d.car.patente)+'</span></span>'+
+        '<span class="money-red">'+formatMoney(d.totals.pendiente)+'</span>'+
+        '</div>'
+      )).join('') +
+    '</div>';
+  }
+  html += '</div>';
+
+  html += '</div>'; // grid-2
+
+  // Últimos movimientos
+  const lastMovs = state.payments.slice().sort((a,b)=> (b.fecha+b.createdAt) > (a.fecha+a.createdAt) ? 1 : -1).slice(0,8);
+  html += '<div class="card" style="padding:18px;margin-top:20px;">'+
+    '<div class="section-title">🧾 Últimos movimientos</div>';
+  if(lastMovs.length === 0){
+    html += emptyState('💳','Todavía no hay movimientos','Registrá tu primer ingreso con el botón "+ Registrar ingreso".');
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Auto</th><th>Patente</th><th class="text-right">Monto</th><th>Método</th></tr></thead><tbody>'+
+      lastMovs.map(p => {
+        const car = getCarById(p.carId);
+        return '<tr><td>'+formatDateDisplay(p.fecha)+'</td><td>'+(car?esc(car.marca+' '+car.nombre):'<span class="muted">Auto eliminado</span>')+'</td><td>'+(car?esc(car.patente):'-')+'</td><td class="text-right money-green">'+formatMoney(p.monto)+'</td><td><span class="pill pill-gray">'+esc(p.metodo)+'</span></td></tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  return html;
+}
+
+function statCard(color, icon, label, value){
+  return '<div class="stat-card '+color+'"><div class="stat-label">'+icon+' '+label+'</div><div class="stat-value">'+value+'</div></div>';
+}
+function emptyState(icon, title, sub){
+  return '<div class="empty-state"><div class="es-ic">'+icon+'</div><div style="font-weight:700;color:var(--gray-900);">'+title+'</div><div style="font-size:12.5px;margin-top:4px;">'+sub+'</div></div>';
+}
+
+/* ================================================================
+   VISTA: MIS AUTOS (ABM)
+   ================================================================ */
+let carsFilter = { estado:'todos', q:'' };
+
+function renderCars(){
+  let cars = state.cars.slice();
+  if(carsFilter.estado !== 'todos') cars = cars.filter(c=>c.estado===carsFilter.estado);
+  if(carsFilter.q){
+    const q = carsFilter.q.toLowerCase();
+    cars = cars.filter(c => (c.nombre+' '+c.marca+' '+c.patente).toLowerCase().includes(q));
+  }
+
+  let html = '<div class="filter-bar">'+
+    '<div class="search-box">🔎 <input placeholder="Buscar por modelo, marca o patente" value="'+esc(carsFilter.q)+'" oninput="carsFilter.q=this.value; rerenderCars();"></div>'+
+    '<div class="field"><label>Estado</label><select onchange="carsFilter.estado=this.value; rerenderCars();">'+
+      '<option value="todos"'+(carsFilter.estado==='todos'?' selected':'')+'>Todos</option>'+
+      '<option value="activo"'+(carsFilter.estado==='activo'?' selected':'')+'>Activos</option>'+
+      '<option value="inactivo"'+(carsFilter.estado==='inactivo'?' selected':'')+'>Inactivos</option>'+
+    '</select></div>'+
+    '<div style="flex:1"></div>'+
+    '<button class="btn btn-primary" onclick="openCarModal()">+ Agregar auto</button>'+
+  '</div>';
+
+  if(cars.length === 0){
+    html += '<div class="card">'+emptyState('🚗','No hay autos para mostrar','Agregá un auto nuevo o cambiá los filtros de búsqueda.')+'</div>';
+    return '<div id="carsListRoot">'+html+'</div>';
+  }
+
+  html += '<div class="cars-grid">'+
+    cars.map(car => {
+      const totals = getCarTotals(car);
+      return '<div class="car-card">'+
+        (car.estado==='inactivo' ? '<div class="badge-inactive">INACTIVO</div>' : '') +
+        '<div class="cc-top"><div><h3>🚗 '+esc(car.marca)+' '+esc(car.nombre)+'</h3><div class="cc-plate">'+esc(car.patente)+'</div></div></div>'+
+        '<div class="cc-rows">'+
+          '<div><span class="muted">Alquiler diario</span><span>'+formatMoney(car.alquilerDiario)+'</span></div>'+
+          '<div><span class="muted">Generado</span><span>'+formatMoney(totals.esperado)+'</span></div>'+
+          '<div><span class="muted">Cobrado</span><span>'+formatMoney(totals.ingresado)+'</span></div>'+
+          '<div><span class="muted">🔴 Pendiente</span><span class="'+(totals.pendiente>0?'money-red':'muted')+'">'+formatMoney(totals.pendiente)+'</span></div>'+
+        '</div>'+
+        '<div class="cc-actions">'+
+          '<button class="btn btn-primary btn-sm" onclick="goToCarDetail(\''+car.id+'\')">Ver detalle</button>'+
+          '<button class="btn btn-secondary btn-sm" onclick="openCarModal(\''+car.id+'\')">✏️ Editar</button>'+
+          '<button class="btn btn-secondary btn-sm" onclick="toggleCarEstado(\''+car.id+'\')">'+(car.estado==='activo'?'⏸ Desactivar':'▶ Activar')+'</button>'+
+          '<button class="btn btn-danger btn-sm" onclick="confirmDeleteCar(\''+car.id+'\')">🗑 Eliminar</button>'+
+        '</div>'+
+      '</div>';
+    }).join('') +
+  '</div>';
+
+  return '<div id="carsListRoot">'+html+'</div>';
+}
+function rerenderCars(){
+  document.getElementById('content').innerHTML = renderCars();
+}
+
+function openCarModal(carId){
+  const car = carId ? getCarById(carId) : null;
+  const isEdit = !!car;
+  const html =
+    '<div class="modal-head"><h2>'+(isEdit?'Editar auto':'Agregar auto')+'</h2><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body">'+
+      '<div id="carFormError"></div>'+
+      '<div class="form-grid">'+
+        formField('Marca','carMarca','text', car?car.marca:'', 'Ej: Toyota')+
+        formField('Modelo / Nombre','carNombre','text', car?car.nombre:'', 'Ej: Etios')+
+        formField('Patente','carPatente','text', car?car.patente:'', 'Ej: AB123CD')+
+        formField('Año','carAnio','text', car?car.anio:'', 'Ej: 2020')+
+        formField('Color','carColor','text', car?car.color:'', 'Ej: Blanco')+
+        formField('Conductor / Inquilino','carConductor','text', car?car.conductor:'', 'Nombre completo')+
+        formField('Teléfono','carTelefono','text', car?car.telefono:'', 'Ej: 11-5555-1234')+
+        formField('Alquiler diario ($)','carAlquiler','number', car?car.alquilerDiario:'', '25000')+
+        formField('Fecha de inicio','carFechaInicio','date', car?car.fechaInicio:todayISO(), '')+
+        '<div class="form-field"><label>Estado</label><select id="carEstado">'+
+          '<option value="activo"'+(car&&car.estado==='activo'?' selected':(!car?' selected':''))+'>Activo</option>'+
+          '<option value="inactivo"'+(car&&car.estado==='inactivo'?' selected':'')+'>Inactivo</option>'+
+        '</select></div>'+
+      '</div>'+
+      (isEdit ? '<div class="section-sub" style="margin-top:10px;">Si cambiás el alquiler diario, el nuevo valor se aplicará desde hoy en adelante. Los días anteriores conservan el precio con el que fueron calculados.</div>' : '')+
+    '</div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="saveCar('+(isEdit?"'"+car.id+"'":'null')+')">'+(isEdit?'Guardar cambios':'Agregar auto')+'</button>'+
+    '</div>';
+  openModal(html);
+}
+
+function formField(label, id, type, value, placeholder){
+  return '<div class="form-field"><label>'+label+'</label><input id="'+id+'" type="'+type+'" value="'+esc(value)+'" placeholder="'+esc(placeholder||'')+'"'+(type==='number'?' min="0" step="1"':'')+'></div>';
+}
+
+function saveCar(carId){
+  const data = {
+    marca: document.getElementById('carMarca').value.trim(),
+    nombre: document.getElementById('carNombre').value.trim(),
+    patente: document.getElementById('carPatente').value.trim().toUpperCase(),
+    anio: document.getElementById('carAnio').value.trim(),
+    color: document.getElementById('carColor').value.trim(),
+    conductor: document.getElementById('carConductor').value.trim(),
+    telefono: document.getElementById('carTelefono').value.trim(),
+    alquilerDiario: Number(document.getElementById('carAlquiler').value),
+    fechaInicio: document.getElementById('carFechaInicio').value,
+    estado: document.getElementById('carEstado').value,
+  };
+
+  const errors = [];
+  if(!data.nombre) errors.push('El modelo/nombre del auto es obligatorio.');
+  if(!data.patente) errors.push('La patente es obligatoria.');
+  if(!data.alquilerDiario || data.alquilerDiario <= 0) errors.push('El alquiler diario debe ser mayor que cero.');
+  if(!data.fechaInicio) errors.push('La fecha de inicio no es válida.');
+  // patente duplicada
+  const dup = state.cars.find(c => c.patente.toUpperCase() === data.patente && c.id !== carId);
+  if(dup) errors.push('Ya existe un auto registrado con esa patente.');
+
+  if(errors.length){
+    document.getElementById('carFormError').innerHTML = '<div class="form-error">'+errors.map(e=>'• '+e).join('<br>')+'</div>';
+    return;
+  }
+
+  if(carId){
+    const car = getCarById(carId);
+    Object.assign(car, data);
+    // Si cambió el precio, registrar nueva entrada en el historial desde hoy (no altera el pasado)
+    const currentPrice = getPriceForDate(car, todayISO());
+    if(currentPrice !== data.alquilerDiario){
+      if(!car.priceHistory) car.priceHistory = [{desde:car.fechaInicio, precio:currentPrice}];
+      car.priceHistory.push({ desde: todayISO(), precio: data.alquilerDiario });
+    }
+    if(!car.priceHistory || car.priceHistory.length===0){
+      car.priceHistory = [{desde:car.fechaInicio, precio:data.alquilerDiario}];
+    }
+    showToast('Auto actualizado correctamente', 'success');
+  } else {
+    const newCar = Object.assign({ id: uid('c'), fechaFin:null, priceHistory:[{desde:data.fechaInicio, precio:data.alquilerDiario}] }, data);
+    state.cars.push(newCar);
+    showToast('Auto agregado correctamente', 'success');
+  }
+  saveState();
+  closeModal();
+  render();
+}
+
+function toggleCarEstado(carId){
+  const car = getCarById(carId);
+  if(!car) return;
+  if(car.estado === 'activo'){
+    const fin = prompt('Fecha de finalización del alquiler (AAAA-MM-DD). Dejalo en blanco para usar la fecha de hoy:', todayISO());
+    if(fin === null) return; // canceló
+    const finVal = fin.trim() || todayISO();
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(finVal)){ showToast('Fecha inválida', 'error'); return; }
+    car.fechaFin = finVal;
+    car.estado = 'inactivo';
+    showToast('Auto marcado como inactivo', 'success');
+  } else {
+    car.fechaFin = null;
+    car.estado = 'activo';
+    showToast('Auto reactivado', 'success');
+  }
+  saveState();
+  render();
+}
+
+function confirmDeleteCar(carId){
+  const car = getCarById(carId);
+  if(!car) return;
+  const paymentCount = state.payments.filter(p=>p.carId===carId).length;
+  const html =
+    '<div class="modal-head"><h2>Eliminar auto</h2><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body">'+
+      '<p>¿Seguro que querés eliminar <b>'+esc(car.marca)+' '+esc(car.nombre)+'</b> ('+esc(car.patente)+')?</p>'+
+      (paymentCount>0 ? '<div class="form-error">⚠️ Este auto tiene '+paymentCount+' pago(s) registrado(s). Al eliminarlo también se eliminará TODO su historial de pagos de forma permanente.</div>' : '')+
+    '</div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-danger" onclick="doDeleteCar(\''+carId+'\')">Sí, eliminar definitivamente</button>'+
+    '</div>';
+  openModal(html);
+}
+function doDeleteCar(carId){
+  state.cars = state.cars.filter(c=>c.id!==carId);
+  state.payments = state.payments.filter(p=>p.carId!==carId);
+  saveState();
+  closeModal();
+  showToast('Auto eliminado', 'success');
+  if(currentView === 'carDetail') goTo('cars'); else render();
+}
+
+/* ================================================================
+   VISTA: DETALLE DE AUTO
+   ================================================================ */
+function renderCarDetail(carId){
+  const car = getCarById(carId);
+  if(!car) return '<div class="card">'+emptyState('🚗','Auto no encontrado','Puede que haya sido eliminado.')+'</div>';
+  const totals = getCarTotals(car);
+
+  let html = '<div style="margin-bottom:14px;"><button class="btn btn-secondary btn-sm" onclick="goTo(\'cars\')">← Volver a Mis Autos</button></div>';
+
+  html += '<div class="card" style="padding:20px;margin-bottom:20px;">'+
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;">'+
+      '<div><h2 style="margin:0;">🚗 '+esc(car.marca)+' '+esc(car.nombre)+' '+(car.estado==='inactivo'?'<span class="pill pill-gray">INACTIVO</span>':'<span class="pill pill-green">ACTIVO</span>')+'</h2>'+
+      '<div class="muted" style="margin-top:4px;">Patente '+esc(car.patente)+'</div></div>'+
+      '<div style="display:flex;gap:8px;">'+
+        '<button class="btn btn-primary btn-sm" onclick="openPaymentModal(\''+car.id+'\')">+ Registrar ingreso</button>'+
+        '<button class="btn btn-secondary btn-sm" onclick="openCarModal(\''+car.id+'\')">✏️ Editar</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="detail-info-grid" style="margin-top:18px;">'+
+      digItem('Año', car.anio||'-')+ digItem('Color', car.color||'-')+
+      digItem('Conductor', car.conductor||'-')+ digItem('Teléfono', car.telefono||'-')+
+      digItem('Alquiler diario', formatMoney(car.alquilerDiario))+ digItem('Inicio', formatDateDisplay(car.fechaInicio))+
+    '</div>'+
+  '</div>';
+
+  html += '<div class="stat-grid">'+
+    statCard('blue','💰','Total esperado', formatMoney(totals.esperado))+
+    statCard('green','💵','Total cobrado', formatMoney(totals.ingresado))+
+    statCard('red','🔴','Total pendiente', formatMoney(totals.pendiente))+
+    statCard('blue','💎','Saldo a favor', formatMoney(totals.favor))+
+  '</div>';
+
+  html += '<div class="stat-grid">'+
+    statCard('gray','📆','Días de alquiler', totals.diasAlquilado)+
+    statCard('green','🟢','Días pagados', totals.diasPagados)+
+    statCard('yellow','🟡','Días parciales', totals.diasParciales)+
+    statCard('red','🔴','Días con deuda', totals.diasDeuda)+
+  '</div>';
+
+  // Tabla histórica
+  const today = todayISO();
+  const dias = daysRangeISO(car.fechaInicio, today).slice().reverse();
+  html += '<div class="card" style="padding:18px;">'+
+    '<div class="section-title">📋 Historial diario</div>';
+  if(dias.length === 0){
+    html += emptyState('📅','Sin historial todavía','Este auto todavía no tiene días de alquiler registrados.');
+  } else {
+    html += '<div class="table-wrap table-scroll"><table><thead><tr><th>Fecha</th><th class="text-right">Esperado</th><th class="text-right">Ingresado</th><th class="text-right">Pendiente</th><th>Estado</th></tr></thead><tbody>'+
+      dias.map(iso => {
+        const info = getDayInfoForCar(car, iso);
+        if(info.esperado === 0 && info.ingresado === 0) return '';
+        return '<tr><td>'+formatDateDisplay(iso)+'</td><td class="text-right">'+formatMoney(info.esperado)+'</td><td class="text-right">'+formatMoney(info.ingresado)+'</td>'+
+          '<td class="text-right '+(info.pendiente>0?'money-red':'muted')+'">'+formatMoney(info.pendiente)+'</td>'+
+          '<td>'+estadoPill(info.estado)+'</td></tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  return html;
+}
+function digItem(label, value){
+  return '<div class="dig-item"><div class="l">'+label+'</div><div class="v">'+esc(value)+'</div></div>';
+}
+function estadoPill(estado){
+  const map = {
+    PAGADO:'<span class="pill pill-green">🟢 Pagado</span>',
+    PARCIAL:'<span class="pill pill-yellow">🟡 Parcial</span>',
+    DEUDA:'<span class="pill pill-red">🔴 Deuda</span>',
+    FAVOR:'<span class="pill pill-blue">💎 A favor</span>',
+    SIN_ACTIVIDAD:'<span class="pill pill-gray">⚪ Sin actividad</span>',
+  };
+  return map[estado] || '';
+}
+
+/* ================================================================
+   VISTA: CALENDARIO
+   ================================================================ */
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DOW = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+function renderCalendar(){
+  const y = calState.year, m = calState.month;
+  const firstDow = (new Date(y, m, 1).getDay() + 6) % 7; // lunes=0
+  const daysInMonth = new Date(y, m+1, 0).getDate();
+
+  let html = '<div class="card" style="padding:18px;">';
+  html += '<div class="cal-header">'+
+    '<div style="display:flex;align-items:center;gap:10px;">'+
+      '<button class="btn btn-secondary btn-sm" onclick="calNav(-1)">←</button>'+
+      '<h2 style="margin:0;font-size:16px;">'+MESES[m]+' '+y+'</h2>'+
+      '<button class="btn btn-secondary btn-sm" onclick="calNav(1)">→</button>'+
+    '</div>'+
+    '<button class="btn btn-secondary btn-sm" onclick="calToday()">Hoy</button>'+
+  '</div>';
+
+  html += '<div class="cal-legend">'+
+    '<span><span class="legend-dot dot-green"></span>Pagado</span>'+
+    '<span><span class="legend-dot dot-yellow"></span>Parcial</span>'+
+    '<span><span class="legend-dot dot-red"></span>Deuda</span>'+
+    '<span><span class="legend-dot dot-gray"></span>Sin actividad</span>'+
+  '</div>';
+
+  html += '<div class="cal-grid">'+ DOW.map(d=>'<div class="cal-dow">'+d+'</div>').join('');
+  for(let i=0;i<firstDow;i++) html += '<div class="cal-day empty"></div>';
+  for(let d=1; d<=daysInMonth; d++){
+    const iso = y+'-'+pad(m+1)+'-'+pad(d);
+    const agg = getDayAggregate(iso);
+    const isSel = iso === calState.selected;
+    const isToday = iso === todayISO();
+    html += '<div class="cal-day'+(isSel?' selected':'')+'" onclick="calSelect(\''+iso+'\')" style="'+(isToday?'border-color:var(--blue-500);':'')+'">'+
+      '<div style="display:flex;justify-content:space-between;"><span class="cd-num">'+d+'</span><span class="cd-dot dot-'+agg.color+'"></span></div>'+
+      (agg.esperado>0 ? '<div class="cd-amt">'+formatMoney(agg.ingresado)+' / '+formatMoney(agg.esperado)+'</div>' : '<div class="cd-amt">&nbsp;</div>')+
+    '</div>';
+  }
+  html += '</div></div>';
+
+  // Detalle del día seleccionado
+  html += '<div class="card" style="padding:18px;margin-top:20px;" id="calDayDetail">'+ renderCalDayDetail(calState.selected) +'</div>';
+
+  return html;
+}
+function renderCalDayDetail(iso){
+  const agg = getDayAggregate(iso);
+  let html = '<div class="section-title">📅 Ingresos del '+formatDateDisplay(iso)+'</div>';
+  if(agg.rows.length === 0){
+    html += emptyState('⚪','Sin actividad ese día','Ningún auto tenía alquiler correspondiente en esta fecha.');
+    return html;
+  }
+  html += '<div class="table-wrap"><table><thead><tr><th>Auto</th><th class="text-right">Esperado</th><th class="text-right">Ingresado</th><th class="text-right">Pendiente</th><th>Estado</th><th></th></tr></thead><tbody>'+
+    agg.rows.map(r => (
+      '<tr><td>'+esc(r.car.marca)+' '+esc(r.car.nombre)+' <span class="muted">('+esc(r.car.patente)+')</span></td>'+
+      '<td class="text-right">'+formatMoney(r.info.esperado)+'</td>'+
+      '<td class="text-right">'+formatMoney(r.info.ingresado)+'</td>'+
+      '<td class="text-right '+(r.info.pendiente>0?'money-red':'muted')+'">'+formatMoney(r.info.pendiente)+'</td>'+
+      '<td>'+estadoPill(r.info.estado)+'</td>'+
+      '<td><button class="btn btn-primary btn-sm" onclick="openPaymentModal(\''+r.car.id+'\',\''+iso+'\')">+ Pago</button></td>'+
+      '</tr>'
+    )).join('') +
+    '</tbody></table></div>';
+  html += '<div class="calc-box" style="margin-top:16px;grid-template-columns:repeat(3,1fr);">'+
+    '<div class="cb-item"><div class="l">Total esperado</div><div class="v">'+formatMoney(agg.esperado)+'</div></div>'+
+    '<div class="cb-item"><div class="l">Total ingresado</div><div class="v">'+formatMoney(agg.ingresado)+'</div></div>'+
+    '<div class="cb-item"><div class="l">Total pendiente</div><div class="v" style="color:'+(agg.pendiente>0?'var(--red-600)':'inherit')+'">'+formatMoney(agg.pendiente)+'</div></div>'+
+  '</div>';
+  return html;
+}
+function calNav(delta){
+  let m = calState.month + delta, y = calState.year;
+  if(m < 0){ m=11; y--; } if(m>11){ m=0; y++; }
+  calState.month = m; calState.year = y;
+  render();
+}
+function calToday(){
+  const d = new Date();
+  calState.year = d.getFullYear(); calState.month = d.getMonth(); calState.selected = todayISO();
+  render();
+}
+function calSelect(iso){
+  calState.selected = iso;
+  render();
+}
+
+/* ================================================================
+   VISTA: MOVIMIENTOS
+   ================================================================ */
+function renderMovements(){
+  let list = state.payments.slice();
+  if(movFilters.desde) list = list.filter(p=>p.fecha >= movFilters.desde);
+  if(movFilters.hasta) list = list.filter(p=>p.fecha <= movFilters.hasta);
+  if(movFilters.carId) list = list.filter(p=>p.carId === movFilters.carId);
+  if(movFilters.metodo) list = list.filter(p=>p.metodo === movFilters.metodo);
+  if(movFilters.q){
+    const q = movFilters.q.toLowerCase();
+    list = list.filter(p => {
+      const car = getCarById(p.carId);
+      return (p.observacion||'').toLowerCase().includes(q) || (car && (car.nombre+' '+car.marca+' '+car.patente).toLowerCase().includes(q));
+    });
+  }
+  list.sort((a,b)=> (b.fecha+String(b.createdAt)) > (a.fecha+String(a.createdAt)) ? 1 : -1);
+
+  let html = '<div class="filter-bar">'+
+    '<div class="search-box">🔎 <input placeholder="Buscar por auto, patente u observación" value="'+esc(movFilters.q)+'" oninput="movFilters.q=this.value; rerenderMovements();"></div>'+
+    '<div class="field"><label>Desde</label><input type="date" value="'+movFilters.desde+'" onchange="movFilters.desde=this.value; rerenderMovements();"></div>'+
+    '<div class="field"><label>Hasta</label><input type="date" value="'+movFilters.hasta+'" onchange="movFilters.hasta=this.value; rerenderMovements();"></div>'+
+    '<div class="field"><label>Auto</label><select onchange="movFilters.carId=this.value; rerenderMovements();">'+
+      '<option value="">Todos</option>'+
+      state.cars.map(c=>'<option value="'+c.id+'"'+(movFilters.carId===c.id?' selected':'')+'>'+esc(c.marca)+' '+esc(c.nombre)+' ('+esc(c.patente)+')</option>').join('')+
+    '</select></div>'+
+    '<div class="field"><label>Método</label><select onchange="movFilters.metodo=this.value; rerenderMovements();">'+
+      '<option value="">Todos</option>'+
+      ['Efectivo','Transferencia','Mercado Pago','Otro'].map(mt=>'<option value="'+mt+'"'+(movFilters.metodo===mt?' selected':'')+'>'+mt+'</option>').join('')+
+    '</select></div>'+
+    '<div class="field"><label>&nbsp;</label><button class="btn btn-ghost" onclick="clearMovFilters()">Limpiar filtros</button></div>'+
+    '<div style="flex:1"></div>'+
+    '<button class="btn btn-primary" onclick="openPaymentModal()">+ Registrar ingreso</button>'+
+  '</div>';
+
+  html += '<div class="card" style="padding:0;overflow:hidden;">';
+  if(list.length === 0){
+    html += emptyState('💳','No se encontraron movimientos','Probá cambiar los filtros o registrá un nuevo ingreso.');
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Fecha</th><th>Auto</th><th>Patente</th><th class="text-right">Monto</th><th>Método</th><th>Observación</th><th>Acciones</th></tr></thead><tbody>'+
+      list.map(p => {
+        const car = getCarById(p.carId);
+        return '<tr><td>'+formatDateDisplay(p.fecha)+'</td>'+
+          '<td>'+(car?esc(car.marca)+' '+esc(car.nombre):'<span class="muted">Auto eliminado</span>')+'</td>'+
+          '<td>'+(car?esc(car.patente):'-')+'</td>'+
+          '<td class="text-right money-green">'+formatMoney(p.monto)+'</td>'+
+          '<td><span class="pill pill-gray">'+esc(p.metodo)+'</span></td>'+
+          '<td class="muted">'+esc(p.observacion||'-')+'</td>'+
+          '<td><button class="btn btn-ghost btn-sm" onclick="openPaymentModal(null,null,\''+p.id+'\')">✏️</button> <button class="btn btn-ghost btn-sm" onclick="confirmDeletePayment(\''+p.id+'\')">🗑</button></td>'+
+        '</tr>';
+      }).join('') +
+      '</tbody></table></div>';
+  }
+  html += '</div>';
+  return html;
+}
+function rerenderMovements(){ document.getElementById('content').innerHTML = renderMovements(); }
+function clearMovFilters(){ movFilters = { desde:'', hasta:'', carId:'', metodo:'', q:'' }; rerenderMovements(); }
+
+function confirmDeletePayment(paymentId){
+  const html =
+    '<div class="modal-head"><h2>Eliminar ingreso</h2><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body"><p>¿Confirmás que querés eliminar este ingreso? Esta acción no se puede deshacer.</p></div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-danger" onclick="doDeletePayment(\''+paymentId+'\')">Sí, eliminar</button>'+
+    '</div>';
+  openModal(html);
+}
+function doDeletePayment(paymentId){
+  state.payments = state.payments.filter(p=>p.id!==paymentId);
+  saveState();
+  closeModal();
+  showToast('Ingreso eliminado', 'success');
+  render();
+}
+
+/* ================================================================
+   MODAL: REGISTRAR / EDITAR PAGO
+   ================================================================ */
+function openPaymentModal(carId, fecha, paymentId){
+  const editing = paymentId ? state.payments.find(p=>p.id===paymentId) : null;
+  const carIdVal = editing ? editing.carId : (carId || (state.cars[0]?state.cars[0].id:''));
+  const fechaVal = editing ? editing.fecha : (fecha || todayISO());
+
+  if(state.cars.length === 0){
+    openModal('<div class="modal-head"><h2>Registrar ingreso</h2><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+      '<div class="modal-body">'+emptyState('🚗','Primero agregá un auto','Necesitás al menos un vehículo cargado para poder registrar ingresos.')+'</div>'+
+      '<div class="modal-foot"><button class="btn btn-secondary" onclick="closeModal()">Cerrar</button><button class="btn btn-primary" onclick="closeModal(); goTo(\'cars\'); openCarModal();">+ Agregar auto</button></div>');
+    return;
+  }
+
+  const html =
+    '<div class="modal-head"><h2>'+(editing?'Editar ingreso':'Registrar ingreso')+'</h2><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body">'+
+      '<div id="payFormError"></div>'+
+      '<div class="form-grid">'+
+        '<div class="form-field"><label>Auto</label><select id="payCarId" onchange="updatePayCalc()">'+
+          state.cars.map(c=>'<option value="'+c.id+'"'+(carIdVal===c.id?' selected':'')+'>'+esc(c.marca)+' '+esc(c.nombre)+' ('+esc(c.patente)+')</option>').join('')+
+        '</select></div>'+
+        '<div class="form-field"><label>Fecha</label><input id="payFecha" type="date" value="'+fechaVal+'" onchange="updatePayCalc()"></div>'+
+        '<div class="form-field"><label>Monto ingresado ($)</label><input id="payMonto" type="number" min="0" step="1" value="'+(editing?editing.monto:'')+'" oninput="updatePayCalc()"></div>'+
+        '<div class="form-field"><label>Método de pago</label><select id="payMetodo">'+
+          ['Efectivo','Transferencia','Mercado Pago','Otro'].map(mt=>'<option value="'+mt+'"'+((editing?editing.metodo:'Efectivo')===mt?' selected':'')+'>'+mt+'</option>').join('')+
+        '</select></div>'+
+        '<div class="form-field full"><label>Observaciones</label><textarea id="payObs" rows="2" placeholder="Opcional">'+esc(editing?editing.observacion:'')+'</textarea></div>'+
+      '</div>'+
+      '<div id="payCalcBox"></div>'+
+    '</div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-primary" onclick="savePayment('+(editing?"'"+editing.id+"'":'null')+')">Guardar</button>'+
+    '</div>';
+  openModal(html);
+  updatePayCalc();
+}
+
+function updatePayCalc(){
+  const carId = document.getElementById('payCarId').value;
+  const fecha = document.getElementById('payFecha').value;
+  const montoInput = Number(document.getElementById('payMonto').value) || 0;
+  const car = getCarById(carId);
+  if(!car || !fecha){ document.getElementById('payCalcBox').innerHTML=''; return; }
+
+  // Si estamos editando un pago existente, no lo contamos dos veces en "ya ingresado"
+  const editingId = window.__editingPaymentId || null;
+  const existentes = getPaymentsForCarDate(carId, fecha).filter(p=>p.id!==editingId);
+  const yaIngresado = existentes.reduce((s,p)=>s+Number(p.monto||0),0);
+  const esperado = getExpectedForDate(car, fecha);
+  const totalConNuevo = yaIngresado + montoInput;
+  const pendiente = clamp0(esperado - totalConNuevo);
+  const favor = clamp0(totalConNuevo - esperado);
+
+  let warn = '';
+  if(fecha < car.fechaInicio) warn = '<div class="form-error">⚠️ Esta fecha es anterior al inicio del alquiler del auto ('+formatDateDisplay(car.fechaInicio)+'). No se generará un monto esperado.</div>';
+  else if(fecha > todayISO()) warn = '<div class="form-error">⚠️ Estás registrando un pago para una fecha futura. El monto esperado para ese día todavía no se calcula.</div>';
+
+  document.getElementById('payCalcBox').innerHTML = warn +
+    '<div class="calc-box">'+
+      '<div class="cb-item"><div class="l">Esperado ese día</div><div class="v">'+formatMoney(esperado)+'</div></div>'+
+      '<div class="cb-item"><div class="l">Ingresado (con este pago)</div><div class="v">'+formatMoney(totalConNuevo)+'</div></div>'+
+      '<div class="cb-item"><div class="l">'+(favor>0?'Saldo a favor':'Pendiente')+'</div><div class="v" style="color:'+((pendiente>0)?'var(--red-600)':(favor>0?'var(--blue-600)':'var(--green-600)'))+'">'+formatMoney(favor>0?favor:pendiente)+'</div></div>'+
+    '</div>'+
+    (yaIngresado>0 ? '<div class="section-sub" style="margin-top:8px;">Ya había '+formatMoney(yaIngresado)+' ingresado para este auto en esta fecha.</div>' : '');
+}
+
+function savePayment(paymentId){
+  window.__editingPaymentId = paymentId;
+  const carId = document.getElementById('payCarId').value;
+  const fecha = document.getElementById('payFecha').value;
+  const monto = Number(document.getElementById('payMonto').value);
+  const metodo = document.getElementById('payMetodo').value;
+  const observacion = document.getElementById('payObs').value.trim();
+
+  const errors = [];
+  if(!carId) errors.push('Debés seleccionar un auto.');
+  if(!fecha) errors.push('La fecha no es válida.');
+  if(!monto || monto <= 0) errors.push('El monto debe ser mayor que cero.');
+
+  if(errors.length){
+    document.getElementById('payFormError').innerHTML = '<div class="form-error">'+errors.map(e=>'• '+e).join('<br>')+'</div>';
+    return;
+  }
+
+  if(paymentId){
+    const p = state.payments.find(x=>x.id===paymentId);
+    Object.assign(p, { carId, fecha, monto, metodo, observacion });
+    showToast('Ingreso actualizado', 'success');
+  } else {
+    state.payments.push({ id: uid('p'), carId, fecha, monto, metodo, observacion, createdAt: Date.now() });
+    showToast('Ingreso registrado', 'success');
+  }
+  window.__editingPaymentId = null;
+  saveState();
+  closeModal();
+  render();
+}
+
+/* ================================================================
+   VISTA: REPORTES
+   ================================================================ */
+function getRangeForPreset(preset){
+  const today = todayISO();
+  if(preset === 'today') return [today, today];
+  if(preset === 'yesterday'){ const y = addDaysISO(today,-1); return [y,y]; }
+  if(preset === 'thisWeek'){
+    const d = parseISO(today);
+    const dow = (d.getDay()+6)%7; // lunes=0
+    const from = addDaysISO(today, -dow);
+    return [from, today];
+  }
+  if(preset === 'thisMonth'){
+    const d = parseISO(today);
+    const from = d.getFullYear()+'-'+pad(d.getMonth()+1)+'-01';
+    return [from, today];
+  }
+  if(preset === 'lastMonth'){
+    const d = parseISO(today);
+    let y = d.getFullYear(), m = d.getMonth()-1;
+    if(m<0){m=11;y--;}
+    const from = y+'-'+pad(m+1)+'-01';
+    const to = y+'-'+pad(m+1)+'-'+pad(new Date(y,m+1,0).getDate());
+    return [from, to];
+  }
+  if(preset === 'custom') return [repCustomFrom, repCustomTo];
+  return [today, today];
+}
+
+function renderReports(){
+  const [from, to] = getRangeForPreset(repRangePreset);
+  const global = getGlobalTotals(from, to);
+  const summary = getAllCarsSummary(from, to).filter(s=>s.totals.esperado>0 || s.totals.ingresado>0);
+
+  let html = '<div class="filter-bar">'+
+    ['today','Hoy','yesterday','Ayer','thisWeek','Esta semana','thisMonth','Este mes','lastMonth','Mes anterior','custom','Rango personalizado']
+      .reduce((acc,cur,i,arr)=>{ if(i%2===0) acc.push([arr[i],arr[i+1]]); return acc; },[])
+      .map(([val,label]) => '<button class="btn btn-sm '+(repRangePreset===val?'btn-primary':'btn-secondary')+'" onclick="setRepPreset(\''+val+'\')">'+label+'</button>').join('') +
+  '</div>';
+
+  if(repRangePreset === 'custom'){
+    html += '<div class="filter-bar">'+
+      '<div class="field"><label>Desde</label><input type="date" value="'+repCustomFrom+'" onchange="repCustomFrom=this.value; rerenderReports();"></div>'+
+      '<div class="field"><label>Hasta</label><input type="date" value="'+repCustomTo+'" onchange="repCustomTo=this.value; rerenderReports();"></div>'+
+    '</div>';
+  }
+
+  html += '<div class="section-sub">Período: '+formatDateDisplay(from)+' al '+formatDateDisplay(to)+'</div>';
+
+  html += '<div class="stat-grid">'+
+    statCard('blue','💰','Total esperado', formatMoney(global.esperado))+
+    statCard('green','💵','Total cobrado', formatMoney(global.ingresado))+
+    statCard('red','🔴','Total pendiente', formatMoney(global.pendiente))+
+    statCard('blue','💎','Saldo a favor', formatMoney(global.favor))+
+  '</div>';
+
+  html += '<div class="grid-2">'+
+    '<div class="card chart-card"><h3>🥧 Cobrado vs pendiente</h3><canvas id="chartCobradoPendiente" height="220"></canvas></div>'+
+    '<div class="card chart-card"><h3>📊 Ingresos por auto</h3><canvas id="chartPorAuto" height="220"></canvas></div>'+
+  '</div>';
+
+  html += '<div class="card chart-card" style="margin-top:20px;"><h3>📈 Ingresos por día</h3><canvas id="chartPorDia" height="220"></canvas></div>';
+
+  // Reporte por auto (tabla)
+  html += '<div class="card" style="padding:18px;margin-top:20px;">'+
+    '<div class="section-title">🚙 Reporte por auto</div>';
+  if(summary.length === 0){
+    html += emptyState('📊','Sin datos en este período','Elegí otro rango de fechas o registrá ingresos.');
+  } else {
+    html += '<div class="table-wrap"><table><thead><tr><th>Auto</th><th class="text-right">Esperado</th><th class="text-right">Cobrado</th><th class="text-right">Pendiente</th></tr></thead><tbody>'+
+      summary.map(s=>(
+        '<tr><td>'+esc(s.car.marca)+' '+esc(s.car.nombre)+' <span class="muted">('+esc(s.car.patente)+')</span></td>'+
+        '<td class="text-right">'+formatMoney(s.totals.esperado)+'</td>'+
+        '<td class="text-right money-green">'+formatMoney(s.totals.ingresado)+'</td>'+
+        '<td class="text-right '+(s.totals.pendiente>0?'money-red':'muted')+'">'+formatMoney(s.totals.pendiente)+'</td></tr>'
+      )).join('')+
+    '</tbody></table></div>';
+  }
+  html += '</div>';
+
+  // Reporte mensual
+  html += '<div class="card" style="padding:18px;margin-top:20px;">'+
+    '<div class="section-title">🗓 Reporte mensual</div>'+
+    '<div class="filter-bar">'+
+      '<div class="field"><label>Mes</label><select onchange="repMonth=Number(this.value); rerenderReports();">'+
+        MESES.map((mn,i)=>'<option value="'+i+'"'+(repMonth===i?' selected':'')+'>'+mn+'</option>').join('')+
+      '</select></div>'+
+      '<div class="field"><label>Año</label><input type="number" value="'+repYear+'" style="width:90px;" onchange="repYear=Number(this.value); rerenderReports();"></div>'+
+    '</div>';
+  const mFrom = repYear+'-'+pad(repMonth+1)+'-01';
+  const mTo = repYear+'-'+pad(repMonth+1)+'-'+pad(new Date(repYear,repMonth+1,0).getDate());
+  const monthTotals = getGlobalTotals(mFrom, mTo);
+  html += '<div class="calc-box" style="grid-template-columns:repeat(3,1fr);">'+
+    '<div class="cb-item"><div class="l">Total generado</div><div class="v">'+formatMoney(monthTotals.esperado)+'</div></div>'+
+    '<div class="cb-item"><div class="l">Total cobrado</div><div class="v" style="color:var(--green-600)">'+formatMoney(monthTotals.ingresado)+'</div></div>'+
+    '<div class="cb-item"><div class="l">Total pendiente</div><div class="v" style="color:'+(monthTotals.pendiente>0?'var(--red-600)':'inherit')+'">'+formatMoney(monthTotals.pendiente)+'</div></div>'+
+  '</div>';
+  html += '</div>';
+
+  return html;
+}
+function rerenderReports(){ document.getElementById('content').innerHTML = renderReports(); drawAllReportCharts(); }
+function setRepPreset(preset){ repRangePreset = preset; rerenderReports(); }
+
+/* ---- Gráficos con Canvas (sin librerías externas) ---- */
+function drawAllReportCharts(){
+  const [from, to] = getRangeForPreset(repRangePreset);
+  const global = getGlobalTotals(from, to);
+  const summary = getAllCarsSummary(from, to).filter(s=>s.totals.esperado>0 || s.totals.ingresado>0);
+
+  drawDonutChart('chartCobradoPendiente', [
+    { label:'Cobrado', value: global.ingresado, color: getCSSVar('--green-600') },
+    { label:'Pendiente', value: global.pendiente, color: getCSSVar('--red-600') },
+  ]);
+
+  drawBarChart('chartPorAuto', summary.map(s => ({
+    label: s.car.patente, value: s.totals.ingresado, color: getCSSVar('--blue-600')
+  })));
+
+  const days = daysRangeISO(from, to);
+  let dayData = days.map(iso => {
+    let sum = 0;
+    for(const car of state.cars) sum += getIngresadoForCarDate(car.id, iso);
+    return { label: formatDateDisplay(iso).slice(0,5), value: sum, color: getCSSVar('--blue-500') };
+  });
+  if(dayData.length > 31){
+    // agrupar de a semanas para que no sea ilegible
+    const grouped = [];
+    for(let i=0;i<dayData.length;i+=7){
+      const chunk = dayData.slice(i,i+7);
+      grouped.push({ label: chunk[0].label+'-'+chunk[chunk.length-1].label, value: chunk.reduce((s,c)=>s+c.value,0), color: getCSSVar('--blue-500') });
+    }
+    dayData = grouped;
+  }
+  drawBarChart('chartPorDia', dayData);
+}
+
+function getCSSVar(name){
+  return getComputedStyle(document.body).getPropertyValue(name).trim() || '#2563eb';
+}
+
+function setupCanvas(canvas){
+  const ratio = window.devicePixelRatio || 1;
+  const cssW = canvas.clientWidth || canvas.parentElement.clientWidth || 400;
+  const cssH = parseInt(canvas.getAttribute('height')) || 220;
+  canvas.width = cssW * ratio;
+  canvas.height = cssH * ratio;
+  canvas.style.width = cssW+'px';
+  canvas.style.height = cssH+'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(ratio,0,0,ratio,0,0);
+  return { ctx, w: cssW, h: cssH };
+}
+
+function drawBarChart(canvasId, items){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const { ctx, w, h } = setupCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  if(!items.length){
+    ctx.fillStyle = getCSSVar('--gray-600'); ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Sin datos para mostrar', w/2, h/2);
+    return;
+  }
+  const padding = { top:16, right:12, bottom:34, left:12 };
+  const maxVal = Math.max(...items.map(i=>i.value), 1);
+  const chartW = w - padding.left - padding.right;
+  const chartH = h - padding.top - padding.bottom;
+  const gap = 12;
+  const barW = Math.max(14, Math.min(56, (chartW - gap*(items.length-1)) / items.length));
+  const totalW = barW*items.length + gap*(items.length-1);
+  let x = padding.left + Math.max(0,(chartW-totalW)/2);
+  ctx.textAlign = 'center';
+  items.forEach(item => {
+    const barH = maxVal>0 ? (item.value/maxVal)*chartH : 0;
+    const y = padding.top + (chartH - barH);
+    ctx.fillStyle = item.color;
+    roundRect(ctx, x, y, barW, barH, 5);
+    ctx.fill();
+    ctx.fillStyle = getCSSVar('--gray-900');
+    ctx.font = '10px sans-serif';
+    ctx.fillText(shortMoney(item.value), x+barW/2, y-6 < padding.top ? padding.top+10 : y-6);
+    ctx.fillStyle = getCSSVar('--gray-600');
+    ctx.font = '10px sans-serif';
+    const lbl = item.label.length > 9 ? item.label.slice(0,8)+'…' : item.label;
+    ctx.fillText(lbl, x+barW/2, h - padding.bottom + 16);
+    x += barW + gap;
+  });
+}
+
+function drawDonutChart(canvasId, items){
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  const { ctx, w, h } = setupCanvas(canvas);
+  ctx.clearRect(0,0,w,h);
+  const total = items.reduce((s,i)=>s+i.value,0);
+  const cx = w*0.32, cy = h/2, r = Math.min(cx, h/2) - 14;
+  if(total <= 0){
+    ctx.fillStyle = getCSSVar('--gray-600'); ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Sin datos para mostrar', w/2, h/2);
+    return;
+  }
+  let start = -Math.PI/2;
+  items.forEach(item => {
+    const slice = (item.value/total) * Math.PI*2;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,start,start+slice);
+    ctx.closePath();
+    ctx.fillStyle = item.color;
+    ctx.fill();
+    start += slice;
+  });
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath(); ctx.arc(cx,cy,r*0.55,0,Math.PI*2); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = getCSSVar('--gray-900');
+  ctx.font = 'bold 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText(shortMoney(total), cx, cy);
+  ctx.textBaseline = 'alphabetic';
+  // leyenda
+  let ly = cy - (items.length*20)/2 + 10;
+  items.forEach(item => {
+    ctx.fillStyle = item.color;
+    ctx.fillRect(w*0.62, ly-9, 10, 10);
+    ctx.fillStyle = getCSSVar('--gray-900');
+    ctx.font='11px sans-serif'; ctx.textAlign='left';
+    ctx.fillText(item.label+' ('+formatMoney(item.value)+')', w*0.62+16, ly);
+    ly += 20;
+  });
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  if(h<=0) h=0.0001;
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function shortMoney(n){
+  n = Math.round(n||0);
+  if(Math.abs(n) >= 1000000) return '$'+(n/1000000).toFixed(1).replace('.0','')+'M';
+  if(Math.abs(n) >= 1000) return '$'+Math.round(n/1000)+'k';
+  return '$'+n;
+}
+
+window.addEventListener('resize', () => {
+  if(currentView === 'reports') drawAllReportCharts();
+});
+
+/* ================================================================
+   VISTA: CONFIGURACIÓN
+   ================================================================ */
+function renderSettings(){
+  const cfg = state.config;
+  let html = '<div class="card" style="padding:18px;max-width:720px;">'+
+    '<div class="section-title">🏢 Datos del negocio</div>'+
+    '<div class="form-field"><label>Nombre del negocio</label><input id="cfgBusinessName" value="'+esc(cfg.businessName)+'" onchange="saveBusinessName(this.value)"></div>'+
+    '<div class="form-field" style="margin-top:10px;"><label>Moneda</label><select disabled><option>Peso Argentino ($ ARS)</option></select></div>'+
+  '</div>';
+
+  html += '<div class="card" style="padding:18px;max-width:720px;margin-top:18px;">'+
+    '<div class="section-title">🎨 Apariencia</div>'+
+    '<div class="settings-row"><div><div class="sr-label">Tema oscuro</div><div class="sr-sub">Cambiá entre modo claro y oscuro</div></div>'+
+      '<div class="toggle-switch'+(cfg.theme==='dark'?' on':'')+'" onclick="toggleTheme()"><div class="knob"></div></div>'+
+    '</div>'+
+  '</div>';
+
+  html += '<div class="card" style="padding:18px;max-width:720px;margin-top:18px;">'+
+    '<div class="section-title">💾 Copia de seguridad</div>'+
+    '<div class="settings-row"><div><div class="sr-label">Exportar copia de seguridad</div><div class="sr-sub">Descarga todos tus datos en un archivo JSON</div></div>'+
+      '<button class="btn btn-secondary" onclick="exportBackup()">⬇ Exportar JSON</button></div>'+
+    '<div class="settings-row"><div><div class="sr-label">Importar copia de seguridad</div><div class="sr-sub">Restaura los datos desde un archivo JSON exportado previamente</div></div>'+
+      '<label class="btn btn-secondary" style="margin:0;">📂 Importar JSON<input type="file" accept="application/json" style="display:none" onchange="importBackup(event)"></label></div>'+
+    '<div class="settings-row"><div><div class="sr-label">Exportar movimientos a CSV</div><div class="sr-sub">Para abrir en Excel u otra planilla de cálculo</div></div>'+
+      '<button class="btn btn-secondary" onclick="exportCSV()">⬇ Exportar CSV</button></div>'+
+  '</div>';
+
+  html += '<div class="card" style="padding:18px;max-width:720px;margin-top:18px;border-color:var(--red-600);">'+
+    '<div class="section-title" style="color:var(--red-600);">⚠️ Zona de riesgo</div>'+
+    '<div class="settings-row"><div><div class="sr-label">Borrar todos los datos</div><div class="sr-sub">Elimina autos, pagos y configuración de forma permanente</div></div>'+
+      '<button class="btn btn-danger" onclick="confirmWipeData()">🗑 Borrar todo</button></div>'+
+  '</div>';
+
+  return html;
+}
+
+function saveBusinessName(val){
+  state.config.businessName = val.trim() || 'Mi Empresa de Alquileres';
+  saveState();
+  document.getElementById('brandName').textContent = state.config.businessName;
+  showToast('Nombre actualizado', 'success');
+}
+
+function toggleTheme(){
+  state.config.theme = state.config.theme === 'dark' ? 'light' : 'dark';
+  saveState();
+  applyTheme();
+  render();
+}
+function applyTheme(){
+  document.body.setAttribute('data-theme', state.config.theme || 'light');
+}
+
+function exportBackup(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'backup_alquileres_'+todayISO()+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Copia de seguridad descargada', 'success');
+}
+
+function importBackup(event){
+  const file = event.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try{
+      const parsed = JSON.parse(e.target.result);
+      if(!Array.isArray(parsed.cars) || !Array.isArray(parsed.payments)){
+        showToast('El archivo no tiene el formato esperado', 'error');
+        return;
+      }
+      const html =
+        '<div class="modal-head"><h2>Importar copia de seguridad</h2><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+        '<div class="modal-body"><div class="form-error">⚠️ Esto reemplazará TODOS los datos actuales ('+state.cars.length+' autos, '+state.payments.length+' pagos) por los del archivo importado ('+parsed.cars.length+' autos, '+parsed.payments.length+' pagos). Esta acción no se puede deshacer.</div></div>'+
+        '<div class="modal-foot"><button class="btn btn-secondary" onclick="closeModal()">Cancelar</button><button class="btn btn-danger" onclick="doImportBackup()">Sí, reemplazar datos</button></div>';
+      window.__importPending = parsed;
+      openModal(html);
+    }catch(err){
+      showToast('No se pudo leer el archivo. ¿Es un JSON válido?', 'error');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+function doImportBackup(){
+  const parsed = window.__importPending;
+  if(!parsed) return;
+  state.cars = parsed.cars || [];
+  state.payments = parsed.payments || [];
+  state.config = Object.assign(defaultConfig(), parsed.config || {});
+  saveState();
+  applyTheme();
+  window.__importPending = null;
+  closeModal();
+  showToast('Datos importados correctamente', 'success');
+  goTo('dashboard');
+}
+
+function exportCSV(){
+  const header = ['Fecha','Auto','Patente','Monto','Metodo','Observacion'];
+  const rows = state.payments.slice().sort((a,b)=> a.fecha < b.fecha ? -1 : 1).map(p => {
+    const car = getCarById(p.carId);
+    return [
+      formatDateDisplay(p.fecha),
+      car ? (car.marca+' '+car.nombre) : 'Auto eliminado',
+      car ? car.patente : '',
+      String(p.monto).replace('.',','),
+      p.metodo,
+      (p.observacion||'').replace(/;/g,',').replace(/\n/g,' ')
+    ];
+  });
+  const csv = [header.join(';')].concat(rows.map(r=>r.join(';'))).join('\r\n');
+  const blob = new Blob(['\ufeff'+csv], { type:'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'movimientos_'+todayISO()+'.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('CSV exportado correctamente', 'success');
+}
+
+function confirmWipeData(){
+  const html =
+    '<div class="modal-head"><h2>Borrar todos los datos</h2><button class="modal-close" onclick="closeModal()">✕</button></div>'+
+    '<div class="modal-body">'+
+      '<div class="form-error">⚠️ Esta acción eliminará TODOS los autos, pagos y configuraciones de forma permanente. No se puede deshacer.</div>'+
+      '<div class="form-field"><label>Para confirmar, escribí <b>BORRAR</b> en el siguiente campo:</label><input id="wipeConfirmInput" oninput="document.getElementById(\'wipeConfirmBtn\').disabled = this.value.trim().toUpperCase() !== \'BORRAR\'"></div>'+
+    '</div>'+
+    '<div class="modal-foot">'+
+      '<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>'+
+      '<button class="btn btn-danger" id="wipeConfirmBtn" disabled onclick="doWipeData()">Borrar todo definitivamente</button>'+
+    '</div>';
+  openModal(html);
+}
+function doWipeData(){
+  localStorage.removeItem(STORAGE_KEY);
+  state = { cars:[], payments:[], config: defaultConfig() };
+  saveState();
+  applyTheme();
+  closeModal();
+  showToast('Todos los datos fueron eliminados', 'success');
+  goTo('dashboard');
+}
+
+/* ================================================================
+   MODAL / TOAST — utilidades genéricas
+   ================================================================ */
+function openModal(html){
+  document.getElementById('modalBox').innerHTML = html;
+  document.getElementById('modalRoot').classList.add('open');
+}
+function closeModal(){
+  document.getElementById('modalRoot').classList.remove('open');
+  document.getElementById('modalBox').innerHTML = '';
+}
+document.getElementById('modalRoot').addEventListener('click', function(e){
+  if(e.target === this) closeModal();
+});
+
+function showToast(msg, type){
+  const el = document.createElement('div');
+  el.className = 'toast'+(type?' '+type:'');
+  el.textContent = msg;
+  document.getElementById('toastRoot').appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); }, 2800);
+}
+
+/* ================================================================
+   INICIALIZACIÓN
+   ================================================================ */
+function init(){
+  loadState();
+  applyTheme();
+  document.getElementById('brandName').textContent = state.config.businessName;
+  render();
+}
+init();
+</script>
+
+<!-- Registro del Service Worker (PWA). Script independiente: no toca la lógica de la app. -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.warn('No se pudo registrar el service worker:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
