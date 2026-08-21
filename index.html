@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
 <title>Control de Alquileres</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#5B3DF5">
@@ -70,16 +70,19 @@
   --shadow:0 2px 10px rgba(0,0,0,.35),0 1px 2px rgba(0,0,0,.25);
 }
 *{box-sizing:border-box;}
-html,body{margin:0;padding:0;}
+html,body{margin:0;padding:0;overscroll-behavior-y:contain;}
 body{
   font-family:var(--font-ui);
   background:var(--gray-50);
   color:var(--gray-900);
   min-height:100vh;
+  min-height:100dvh;
   -webkit-font-smoothing:antialiased;
   letter-spacing:-.01em;
+  -webkit-tap-highlight-color:transparent;
+  overscroll-behavior-y:contain;
 }
-button{font-family:inherit;cursor:pointer;}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation;}
 input,select,textarea{font-family:inherit;}
 a{color:inherit;}
 ::-webkit-scrollbar{width:9px;height:9px;}
@@ -235,19 +238,23 @@ tbody tr:hover{background:var(--gray-50);}
 
 /* Calendario */
 .cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-.cal-dow{font-size:11px;font-weight:700;color:var(--gray-600);text-align:center;padding-bottom:4px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;}
+.cal-dow{font-size:10.5px;font-weight:700;color:var(--gray-600);text-align:center;padding-bottom:4px;}
 .cal-day{
   aspect-ratio:1/0.85;border-radius:13px;border:1px solid var(--gray-200);background:var(--card-bg);
-  padding:6px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:box-shadow .15s,transform .1s;
-  min-height:64px;
+  padding:5px 4px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:box-shadow .15s,transform .1s;
+  min-height:60px;min-width:0;overflow:hidden;
 }
 .cal-day:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px);}
 .cal-day.empty{visibility:hidden;}
-.cal-day .cd-num{font-size:12.5px;font-weight:700;}
-.cal-day .cd-dot{width:9px;height:9px;border-radius:50%;align-self:flex-end;}
+.cal-day .cd-num{font-size:12px;font-weight:700;}
+.cal-day .cd-dot{width:8px;height:8px;border-radius:50%;align-self:flex-end;flex-shrink:0;}
 .cal-day.selected{outline:2px solid var(--violet-600);background:var(--grad-soft);}
-.cal-day .cd-amt{font-size:10px;color:var(--gray-600);}
+.cal-day .cd-amt{
+  font-size:8.5px;color:var(--gray-600);line-height:1.15;
+  white-space:normal;word-break:break-word;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+}
 .dot-green{background:var(--green-600);}
 .dot-yellow{background:var(--yellow-500);}
 .dot-red{background:var(--red-600);}
@@ -255,6 +262,13 @@ tbody tr:hover{background:var(--gray-50);}
 .cal-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--gray-600);margin:12px 0 4px;}
 .cal-legend span{display:inline-flex;align-items:center;gap:6px;}
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+@media(max-width:480px){
+  .cal-dow{font-size:9.5px;}
+  .cal-day{padding:4px 3px;min-height:52px;border-radius:10px;}
+  .cal-day .cd-num{font-size:11px;}
+  .cal-day .cd-amt{font-size:7.5px;}
+  .cal-grid{gap:4px;}
+}
 
 /* Modal */
 #modalRoot{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(24,21,48,.6);backdrop-filter:blur(2px);z-index:100;padding:16px;}
@@ -281,6 +295,10 @@ tbody tr:hover{background:var(--gray-50);}
 
 /* Toast */
 #toastRoot{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px;}
+@media(max-width:900px){
+  #toastRoot{bottom:calc(90px + env(safe-area-inset-bottom));right:14px;left:14px;}
+  .toast{min-width:0;width:100%;}
+}
 .toast{background:var(--navy-900);color:#fff;padding:12px 18px;border-radius:13px;font-size:13px;font-weight:600;box-shadow:var(--shadow-lg);min-width:220px;animation:slideIn .2s ease;}
 .toast.success{background:linear-gradient(135deg,#12B76A,#0EA05B);}
 .toast.error{background:linear-gradient(135deg,#F0453D,#D8342C);}
@@ -319,14 +337,42 @@ canvas{max-width:100%;}
   #sidebar{transform:translateX(-100%);}
   #sidebar.open{transform:translateX(0);}
   #mainWrap{margin-left:0;}
-  #hamburger{display:block;}
+  #hamburger{display:none;}
   .form-grid{grid-template-columns:1fr;}
   .grid-3{grid-template-columns:1fr;}
-  #content{padding:16px;}
+  #content{padding:16px 16px calc(86px + env(safe-area-inset-bottom));}
+  #topbar{padding-top:calc(14px + env(safe-area-inset-top));}
+}
+
+/* ============================================================
+   BARRA DE NAVEGACIÓN INFERIOR (solo mobile) — patrón nativo
+   ============================================================ */
+#bottomNav{
+  display:none;
+  position:fixed;left:0;right:0;bottom:0;z-index:70;
+  background:var(--card-bg);
+  border-top:1px solid var(--gray-200);
+  padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  justify-content:space-around;align-items:center;
+  box-shadow:0 -4px 20px rgba(32,29,61,.06);
+}
+.bn-item{
+  background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:3px;
+  color:var(--gray-400);font-size:10px;font-weight:700;padding:6px 10px;border-radius:12px;
+  flex:1;max-width:76px;transition:color .15s,background .15s;
+  -webkit-tap-highlight-color:transparent;user-select:none;touch-action:manipulation;
+}
+.bn-item .bn-ic{font-size:20px;line-height:1;transition:transform .12s;}
+.bn-item:active .bn-ic{transform:scale(.88);}
+.bn-item.active{color:var(--violet-600);}
+.bn-item.active .bn-ic{filter:drop-shadow(0 2px 6px rgba(124,92,252,.35));}
+@media(max-width:900px){
+  #bottomNav{display:flex;}
 }
 </style>
 </head>
 <body data-theme="light">
+<div id="bottomNav" role="navigation" aria-label="Navegación principal"></div>
 <div id="dropOverlay" onclick="closeSidebar()"></div>
 <div id="appShell">
   <!-- SIDEBAR -->
@@ -1739,6 +1785,65 @@ if ('serviceWorker' in navigator) {
     });
   });
 }
+</script>
+
+<!-- Barra de navegación inferior (patrón nativo de apps mobile).
+     Script independiente: usa las funciones goTo/goToCarDetail/toggleSidebar
+     ya existentes, sin modificar ni una línea del script principal. -->
+<script>
+const BOTTOM_NAV_ITEMS = [
+  { view:'dashboard', label:'Inicio', icon:'🏠' },
+  { view:'cars', label:'Autos', icon:'🚗' },
+  { view:'calendar', label:'Calendario', icon:'📅' },
+  { view:'movements', label:'Movim.', icon:'💳' },
+  { view:'__more__', label:'Más', icon:'☰' },
+];
+
+function renderBottomNav(){
+  const el = document.getElementById('bottomNav');
+  if(!el) return;
+  el.innerHTML = BOTTOM_NAV_ITEMS.map(item => (
+    '<button class="bn-item" data-view="'+item.view+'" onclick="bottomNavClick(\''+item.view+'\')">'+
+      '<span class="bn-ic">'+item.icon+'</span><span>'+item.label+'</span>'+
+    '</button>'
+  )).join('');
+}
+
+function bottomNavClick(view){
+  if(view === '__more__'){
+    toggleSidebar(); // función original, sin modificar
+    return;
+  }
+  goTo(view); // función original, sin modificar
+}
+
+function updateBottomNavActive(view){
+  document.querySelectorAll('.bn-item').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-view') === view);
+  });
+}
+
+// Envolvemos goTo/goToCarDetail SOLO para sincronizar el resaltado de la
+// barra inferior. Las funciones originales se siguen ejecutando intactas.
+(function wireBottomNavSync(){
+  if (typeof window.goTo === 'function') {
+    const _origGoTo = window.goTo;
+    window.goTo = function(view){
+      _origGoTo(view);
+      updateBottomNavActive(view);
+    };
+  }
+  if (typeof window.goToCarDetail === 'function') {
+    const _origGoToCarDetail = window.goToCarDetail;
+    window.goToCarDetail = function(carId){
+      _origGoToCarDetail(carId);
+      updateBottomNavActive('cars');
+    };
+  }
+})();
+
+renderBottomNav();
+updateBottomNavActive('dashboard');
 </script>
 </body>
 </html>
