@@ -209,9 +209,9 @@ tbody tr:hover{background:var(--gray-50);}
 .money-green{color:var(--green-600);font-weight:700;}
 .money-neu{font-weight:700;}
 
-.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
-@media(max-width:900px){.grid-2{grid-template-columns:1fr;}.grid-3{grid-template-columns:1fr;}}
+.grid-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+@media(max-width:900px){.grid-2{grid-template-columns:minmax(0,1fr);}.grid-3{grid-template-columns:minmax(0,1fr);}}
 
 /* Autos */
 .cars-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:16px;}
