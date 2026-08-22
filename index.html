@@ -192,6 +192,7 @@ a{color:inherit;}
 .pill-red{background:var(--red-100);color:var(--red-600);}
 .pill-gray{background:var(--gray-100);color:var(--gray-600);}
 .pill-blue{background:var(--blue-100);color:var(--violet-600);}
+.pill-pause{background:var(--gray-200);color:var(--gray-600);}
 
 table{width:100%;border-collapse:collapse;font-size:13px;}
 thead th{
@@ -241,9 +242,9 @@ tbody tr:hover{background:var(--gray-50);}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;}
 .cal-dow{font-size:10.5px;font-weight:700;color:var(--gray-600);text-align:center;padding-bottom:4px;}
 .cal-day{
-  aspect-ratio:1/0.85;border-radius:13px;border:1px solid var(--gray-200);background:var(--card-bg);
+  border-radius:13px;border:1px solid var(--gray-200);background:var(--card-bg);
   padding:5px 4px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;transition:box-shadow .15s,transform .1s;
-  min-height:60px;min-width:0;overflow:hidden;
+  min-height:60px;min-width:0;width:100%;overflow:hidden;
 }
 .cal-day:hover{box-shadow:var(--shadow-lg);transform:translateY(-1px);}
 .cal-day.empty{visibility:hidden;}
@@ -259,6 +260,7 @@ tbody tr:hover{background:var(--gray-50);}
 .dot-yellow{background:var(--yellow-500);}
 .dot-red{background:var(--red-600);}
 .dot-gray{background:var(--gray-300);}
+.dot-pausa{background:var(--violet-500);}
 .cal-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--gray-600);margin:12px 0 4px;}
 .cal-legend span{display:inline-flex;align-items:center;gap:6px;}
 .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
@@ -416,7 +418,7 @@ canvas{max-width:100%;}
 
 /* ---------------- ESTADO Y PERSISTENCIA ---------------- */
 const STORAGE_KEY = 'car_rental_control_v1';
-let state = { cars: [], payments: [], config: {} };
+let state = { cars: [], payments: [], pauses: [], config: {} };
 
 function defaultConfig(){
   return { businessName:'Mi Empresa de Alquileres', currency:'ARS', theme:'light' };
@@ -429,13 +431,14 @@ function loadState(){
       const parsed = JSON.parse(raw);
       state.cars = Array.isArray(parsed.cars) ? parsed.cars : [];
       state.payments = Array.isArray(parsed.payments) ? parsed.payments : [];
+      state.pauses = Array.isArray(parsed.pauses) ? parsed.pauses : [];
       state.config = Object.assign(defaultConfig(), parsed.config || {});
     }catch(e){
       console.error('Error leyendo datos guardados', e);
-      state = { cars: [], payments: [], config: defaultConfig() };
+      state = { cars: [], payments: [], pauses: [], config: defaultConfig() };
     }
   } else {
-    state = { cars: [], payments: [], config: defaultConfig() };
+    state = { cars: [], payments: [], pauses: [], config: defaultConfig() };
     seedSampleData();
   }
 }
@@ -507,12 +510,30 @@ function getPriceForDate(car, iso){
   return price;
 }
 
+// Días marcados como "pausa" (taller, chofer libre, etc.) — no generan alquiler esperado.
+function isPausedForCarDate(carId, iso){
+  return state.pauses.some(p => p.carId === carId && p.fecha === iso);
+}
+function togglePauseDay(carId, iso){
+  const idx = state.pauses.findIndex(p => p.carId === carId && p.fecha === iso);
+  if(idx >= 0){
+    state.pauses.splice(idx, 1);
+    showToast('Pausa quitada', 'success');
+  } else {
+    state.pauses.push({ id: uid('ps'), carId, fecha: iso });
+    showToast('Día marcado como pausa', 'success');
+  }
+  saveState();
+  render();
+}
+
 // Monto que el auto DEBE generar en una fecha concreta (0 si no corresponde).
 function getExpectedForDate(car, iso){
   const today = todayISO();
   if(iso > today) return 0; // no se genera alquiler a futuro
   if(!car.fechaInicio || iso < car.fechaInicio) return 0;
   if(car.fechaFin && iso > car.fechaFin) return 0;
+  if(isPausedForCarDate(car.id, iso)) return 0; // día pausado: no corresponde alquiler
   return getPriceForDate(car, iso);
 }
 
@@ -528,12 +549,15 @@ function getIngresadoForCar(carId){
 
 // Info completa de un auto en un día puntual.
 function getDayInfoForCar(car, iso){
+  const pausado = isPausedForCarDate(car.id, iso);
   const esperado = getExpectedForDate(car, iso);
   const ingresado = getIngresadoForCarDate(car.id, iso);
   const pendiente = clamp0(esperado - ingresado);
   const favor = clamp0(ingresado - esperado);
   let estado;
-  if(esperado === 0){
+  if(pausado){
+    estado = ingresado > 0 ? 'FAVOR' : 'PAUSA';
+  } else if(esperado === 0){
     estado = ingresado > 0 ? 'FAVOR' : 'SIN_ACTIVIDAD';
   } else if(ingresado <= 0){
     estado = 'DEUDA';
@@ -542,7 +566,7 @@ function getDayInfoForCar(car, iso){
   } else {
     estado = 'PAGADO';
   }
-  return { esperado, ingresado, pendiente, favor, estado };
+  return { esperado, ingresado, pendiente, favor, estado, pausado };
 }
 
 // Totales acumulados de un auto en un rango de fechas [fromISO, toISO].
@@ -608,18 +632,20 @@ function getCarById(id){ return state.cars.find(c=>c.id===id); }
 function getDayAggregate(iso){
   let esperado=0, ingresado=0, pendiente=0;
   const rows = [];
+  let anyPause = false;
   for(const car of state.cars){
     const info = getDayInfoForCar(car, iso);
-    if(info.esperado > 0 || info.ingresado > 0){
+    if(info.esperado > 0 || info.ingresado > 0 || info.pausado){
       rows.push({ car, info });
     }
+    if(info.pausado) anyPause = true;
     esperado += info.esperado;
     ingresado += info.ingresado;
     pendiente += info.pendiente;
   }
   let color = 'gray';
   if(esperado === 0){
-    color = 'gray';
+    color = anyPause ? 'pausa' : 'gray';
   } else if(pendiente === 0){
     color = 'green';
   } else if(ingresado > 0){
@@ -990,6 +1016,7 @@ function confirmDeleteCar(carId){
 function doDeleteCar(carId){
   state.cars = state.cars.filter(c=>c.id!==carId);
   state.payments = state.payments.filter(p=>p.carId!==carId);
+  state.pauses = state.pauses.filter(p=>p.carId!==carId);
   saveState();
   closeModal();
   showToast('Auto eliminado', 'success');
@@ -1068,6 +1095,7 @@ function estadoPill(estado){
     DEUDA:'<span class="pill pill-red">🔴 Deuda</span>',
     FAVOR:'<span class="pill pill-blue">💎 A favor</span>',
     SIN_ACTIVIDAD:'<span class="pill pill-gray">⚪ Sin actividad</span>',
+    PAUSA:'<span class="pill pill-pause">⏸ Pausa</span>',
   };
   return map[estado] || '';
 }
@@ -1097,6 +1125,7 @@ function renderCalendar(){
     '<span><span class="legend-dot dot-green"></span>Pagado</span>'+
     '<span><span class="legend-dot dot-yellow"></span>Parcial</span>'+
     '<span><span class="legend-dot dot-red"></span>Deuda</span>'+
+    '<span><span class="legend-dot dot-pausa"></span>Pausa</span>'+
     '<span><span class="legend-dot dot-gray"></span>Sin actividad</span>'+
   '</div>';
 
@@ -1133,7 +1162,12 @@ function renderCalDayDetail(iso){
       '<td class="text-right">'+formatMoney(r.info.ingresado)+'</td>'+
       '<td class="text-right '+(r.info.pendiente>0?'money-red':'muted')+'">'+formatMoney(r.info.pendiente)+'</td>'+
       '<td>'+estadoPill(r.info.estado)+'</td>'+
-      '<td><button class="btn btn-primary btn-sm" onclick="openPaymentModal(\''+r.car.id+'\',\''+iso+'\')">+ Pago</button></td>'+
+      '<td><div style="display:flex;gap:6px;flex-wrap:wrap;">'+
+        '<button class="btn btn-primary btn-sm" onclick="openPaymentModal(\''+r.car.id+'\',\''+iso+'\')">+ Pago</button>'+
+        (r.info.pausado
+          ? '<button class="btn btn-secondary btn-sm" onclick="togglePauseDay(\''+r.car.id+'\',\''+iso+'\')">▶ Quitar pausa</button>'
+          : '<button class="btn btn-ghost btn-sm" onclick="togglePauseDay(\''+r.car.id+'\',\''+iso+'\')">⏸ Marcar pausa</button>')+
+      '</div></td>'+
       '</tr>'
     )).join('') +
     '</tbody></table></div>';
@@ -1686,6 +1720,7 @@ function doImportBackup(){
   if(!parsed) return;
   state.cars = parsed.cars || [];
   state.payments = parsed.payments || [];
+  state.pauses = Array.isArray(parsed.pauses) ? parsed.pauses : [];
   state.config = Object.assign(defaultConfig(), parsed.config || {});
   saveState();
   applyTheme();
@@ -1733,7 +1768,7 @@ function confirmWipeData(){
 }
 function doWipeData(){
   localStorage.removeItem(STORAGE_KEY);
-  state = { cars:[], payments:[], config: defaultConfig() };
+  state = { cars:[], payments:[], pauses:[], config: defaultConfig() };
   saveState();
   applyTheme();
   closeModal();
